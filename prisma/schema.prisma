@@ -9,3 +9,55 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Collection {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  albums Album[]
+
+  @@map("collections")
+}
+
+model Album {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  cover   Photo? @relation(fields: [coverId], references: [id])
+  coverId Int?
+
+  collection Collection? @relation(fields: [collcetionId], references: [id])
+  collcetionId Int?
+
+  photos Location[]
+
+  @@map("albums")
+}
+
+model Photo {
+  id Int @id @default(autoincrement())
+  path String
+  uploadedAt DateTime @default(now())
+  receivedAt DateTime?
+  officialID String?
+  fromGroup String?
+  fromPerson String?
+  description String?
+
+  albumCovers Album[]
+  locations Location[]
+
+  @@map("photos")
+}
+
+model Location {
+  id Int @id @default(autoincrement())
+
+  album   Album @relation(fields: [albumId], references: [id])
+  albumId Int
+
+  photo   Photo @relation(fields: [photoId], references: [id])
+  photoId Int
+
+  @@map("locations")
+}
