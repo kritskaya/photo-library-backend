@@ -5,5 +5,6 @@ import { CollectionService } from './collection.service';
 @Module({
   providers: [CollectionService],
   controllers: [CollectionController],
+  exports: [CollectionService],
 })
 export class CollectionModule {}
