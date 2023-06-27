@@ -20,8 +20,9 @@ export class PhotoController {
   constructor(private photoService: PhotoService) {}
 
   @Get()
-  async findMany(@Query() queryParams: PhotosQueryParams) {
-    const photos = await this.photoService.findMany(queryParams.perPage, queryParams.page);
+  async findMany(@Query(ValidationPipe) queryParams: PhotosQueryParams) {
+    const { page, perPage, ...rest } = queryParams;
+    const photos = await this.photoService.findMany(Number(perPage), Number(page), rest);
 
     return photos;
   }

@@ -11,14 +11,11 @@ export class PhotoService {
     return this.prisma.photo.findMany();
   }
 
-  async findMany(
-    perPage?: number,
-    page?: number,
-    condition?: Prisma.PhotoWhereInput,
-  ): Promise<Photo[]> {
+  async findMany(perPage = 20, page = 0, condition?: Prisma.PhotoWhereInput) {
+    console.log(perPage, page);
     return this.prisma.photo.findMany({
-      skip: perPage * page,
-      take: perPage,
+      skip: perPage && page ? perPage * page : 0,
+      take: perPage || 20,
       where: condition,
     });
   }
