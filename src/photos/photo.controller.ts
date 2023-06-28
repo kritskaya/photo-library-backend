@@ -9,11 +9,17 @@ import {
   Post,
   Put,
   Query,
+  UploadedFiles,
+  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
 import { PhotosQueryParams } from './params/photo.params';
 import { PhotoService } from './photo.service';
+import { imageFileFilter } from './multer/imagePhotoFilter';
+import { storage } from './multer/multerStorage';
+import { UPLOAD_PATH } from 'src/common/constants';
 
 @Controller('photos')
 export class PhotoController {
@@ -43,6 +49,23 @@ export class PhotoController {
     const newPhoto = await this.photoService.create(body);
 
     return newPhoto;
+  }
+
+  @Post('upload')
+  @UseInterceptors(
+    FilesInterceptor('files', 20, {
+      fileFilter: imageFileFilter,
+      storage: storage,
+    }),
+  )
+  async uploadFile(
+    @UploadedFiles()
+    files: Express.Multer.File[],
+  ) {
+    console.log(files);
+    return {
+      urls: files.map((file) => `${UPLOAD_PATH}/${file.originalname}`),
+    };
   }
 
   @Put(':id')
