@@ -10,7 +10,13 @@ import {
   Put,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ExceptionMessages } from 'src/common/messages';
 import { CollectionService } from './collection.service';
 import { CreateCollectionDto, UpdateCollectionDto } from './dto/collection.dto';
@@ -41,6 +47,7 @@ export class CollectionController {
   }
 
   @ApiCreatedResponse({ type: CollectionEntity })
+  @ApiBadRequestResponse()
   @Post()
   async create(@Body(ValidationPipe) body: CreateCollectionDto) {
     const newCollection = await this.collectionService.create(body);
@@ -48,6 +55,7 @@ export class CollectionController {
   }
 
   @ApiOkResponse({ type: CollectionEntity })
+  @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.COLLECTION_NOT_FOUND })
   @Put(':id')
   async update(
@@ -65,6 +73,7 @@ export class CollectionController {
   }
 
   @ApiOkResponse({ type: CollectionEntity })
+  @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.COLLECTION_NOT_FOUND })
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {

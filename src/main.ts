@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { CollectionModule } from './collections/collection.module';
+import { AlbumModule } from './albums/album.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,7 +14,7 @@ async function bootstrap() {
   const config = new DocumentBuilder().setTitle('Photo Library API').setVersion('1.0').build();
 
   const document = SwaggerModule.createDocument(app, config, {
-    include: [CollectionModule],
+    include: [CollectionModule, AlbumModule],
   });
   SwaggerModule.setup('api', app, document);
 
