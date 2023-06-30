@@ -1,10 +1,12 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   NotFoundException,
   Param,
+  ParseFilePipe,
   ParseIntPipe,
   Post,
   Put,
@@ -20,11 +22,26 @@ import { PhotoService } from './photo.service';
 import { imageFileFilter } from './multer/imagePhotoFilter';
 import { storage } from './multer/multerStorage';
 import { UPLOAD_PATH } from 'src/common/constants';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { PhotoEntity } from './entity/photo.entity';
+import { ExceptionMessages } from 'src/common/messages';
+import { UploadResponseEntity } from './entity/upload.response.entity';
+import { FilesUploadDto } from './dto/file.dto';
 
+@ApiTags('photos')
 @Controller('photos')
 export class PhotoController {
   constructor(private photoService: PhotoService) {}
 
+  @ApiOkResponse({ type: [PhotoEntity] })
   @Get()
   async findMany(@Query(ValidationPipe) queryParams: PhotosQueryParams) {
     const { page, perPage, ...rest } = queryParams;
@@ -33,17 +50,22 @@ export class PhotoController {
     return photos;
   }
 
+  @ApiCreatedResponse({ type: PhotoEntity })
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const photo = await this.photoService.findById(id);
 
     if (!photo) {
-      throw new NotFoundException('Photo with such id not found');
+      throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 
     return photo;
   }
 
+  @ApiOkResponse({ type: PhotoEntity })
+  @ApiBadRequestResponse()
   @Post()
   async create(@Body(new ValidationPipe({ transform: true })) body: CreatePhotoDto) {
     const newPhoto = await this.photoService.create(body);
@@ -51,6 +73,13 @@ export class PhotoController {
     return newPhoto;
   }
 
+  @ApiCreatedResponse({ type: UploadResponseEntity })
+  @ApiBadRequestResponse()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'List of images with format *.jpg, *.png, *.gif',
+    type: FilesUploadDto,
+  })
   @Post('upload')
   @UseInterceptors(
     FilesInterceptor('files', 20, {
@@ -59,7 +88,7 @@ export class PhotoController {
     }),
   )
   async uploadFile(
-    @UploadedFiles()
+    @UploadedFiles(new ParseFilePipe({ fileIsRequired: true }))
     files: Express.Multer.File[],
   ) {
     console.log(files);
@@ -68,11 +97,14 @@ export class PhotoController {
     };
   }
 
+  @ApiOkResponse({ type: PhotoEntity })
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
   @Put(':id')
   async update(@Param('id', ParseIntPipe) id: number, @Body(ValidationPipe) body: UpdatePhotoDto) {
     const photo = await this.photoService.findById(id);
     if (!photo) {
-      throw new NotFoundException('Photo with such id not found');
+      throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 
     const updatedPhoto = this.photoService.update(id, body, photo);
@@ -80,11 +112,14 @@ export class PhotoController {
     return updatedPhoto;
   }
 
+  @ApiOkResponse({ type: PhotoEntity })
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
     const photo = await this.photoService.findById(id);
     if (!photo) {
-      throw new NotFoundException('Photo with such id not found');
+      throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 
     const deletedPhoto = this.photoService.delete(id);
