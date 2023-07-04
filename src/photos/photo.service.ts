@@ -56,6 +56,7 @@ export class PhotoService {
 
   async delete(id: number): Promise<Photo> {
     const [_covers, _deletedLocations, deletedPhoto] = await this.prisma.$transaction([
+      // update album covers
       this.prisma.album.updateMany({
         data: {
           coverId: null,
@@ -64,11 +65,15 @@ export class PhotoService {
           coverId: id,
         },
       }),
+
+      // delete locations
       this.prisma.location.deleteMany({
         where: {
           photoId: id,
         },
       }),
+
+      //delete photo
       this.prisma.photo.delete({
         where: {
           id,
