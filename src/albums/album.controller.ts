@@ -20,6 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { CollectionService } from 'src/collections/collection.service';
 import { ExceptionMessages } from 'src/common/messages';
+import { PhotoService } from 'src/photos/photo.service';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto, UpdateAlbumDto } from './dto/album.dto';
 import { AlbumEntity } from './entity/album.entity';
@@ -27,7 +28,11 @@ import { AlbumEntity } from './entity/album.entity';
 @ApiTags('albums')
 @Controller('albums')
 export class AlbumController {
-  constructor(private albumService: AlbumService, private collectionService: CollectionService) {}
+  constructor(
+    private albumService: AlbumService,
+    private collectionService: CollectionService,
+    private photoService: PhotoService,
+  ) {}
 
   @ApiOkResponse({ type: [AlbumEntity] })
   @Get()
@@ -61,7 +66,13 @@ export class AlbumController {
       }
     }
 
-    // todo: check if cover exist
+    if (body.coverId) {
+      const cover = this.photoService.findById(body.coverId);
+
+      if (!cover) {
+        throw new BadRequestException(ExceptionMessages.PHOTO_NOT_FOUND);
+      }
+    }
 
     const newAlbum = await this.albumService.create(body);
     return newAlbum;
@@ -85,7 +96,13 @@ export class AlbumController {
       }
     }
 
-    // todo: check if cover exist
+    if (body.coverId) {
+      const cover = this.photoService.findById(body.coverId);
+
+      if (!cover) {
+        throw new BadRequestException(ExceptionMessages.PHOTO_NOT_FOUND);
+      }
+    }
 
     const updatedAlbum = await this.albumService.update(id, body, album);
     return updatedAlbum;
