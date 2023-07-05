@@ -39,10 +39,97 @@ export class CollectionService {
   }
 
   async delete(id: number): Promise<Collection> {
-    return this.prisma.collection.delete({
-      where: {
-        id,
-      },
+    const deletedPhotoIds: number[] = [];
+
+    const deletedAlbumsIds = (
+      await this.prisma.album.findMany({
+        where: {
+          collcetionId: id,
+        },
+      })
+    ).map((album) => album.id);
+
+    // all photos from deleted albums
+    const deletedAlbumsPhotoIds = (
+      await this.prisma.location.findMany({
+        where: {
+          albumId: {
+            in: deletedAlbumsIds,
+          },
+        },
+      })
+    ).map((location) => location.photoId);
+
+    // all photos from deleted albums that related to another not deleted albums
+    const deletedAlbumsManyLocationsPhotoIds = (
+      await this.prisma.location.findMany({
+        where: {
+          albumId: {
+            notIn: deletedAlbumsIds,
+          },
+          photoId: {
+            in: deletedAlbumsPhotoIds,
+          },
+        },
+      })
+    ).map((location) => location.photoId);
+
+    // photos that located only in the deleted albums
+    deletedAlbumsPhotoIds.forEach((photoId) => {
+      if (deletedAlbumsManyLocationsPhotoIds.includes(photoId)) {
+        deletedPhotoIds.push(photoId);
+      }
     });
+
+    const [_covers, _deletedLocations, _deletedPhoto, _deletedAlbums, deletedCollection] =
+      await this.prisma.$transaction([
+        // update album covers
+        this.prisma.album.updateMany({
+          data: {
+            coverId: null,
+          },
+          where: {
+            coverId: {
+              in: deletedPhotoIds,
+            },
+          },
+        }),
+
+        // delete locations
+        this.prisma.location.deleteMany({
+          where: {
+            albumId: {
+              in: deletedAlbumsIds,
+            },
+          },
+        }),
+
+        //delete photos
+        this.prisma.photo.deleteMany({
+          where: {
+            id: {
+              in: deletedPhotoIds,
+            },
+          },
+        }),
+
+        //delete albums
+        this.prisma.album.deleteMany({
+          where: {
+            id: {
+              in: deletedAlbumsIds,
+            },
+          },
+        }),
+
+        //delete collection
+        this.prisma.collection.delete({
+          where: {
+            id,
+          },
+        }),
+      ]);
+
+    return deletedCollection;
   }
 }

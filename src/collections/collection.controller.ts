@@ -17,6 +17,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { AlbumService } from 'src/albums/album.service';
 import { ExceptionMessages } from 'src/common/messages';
 import { CollectionService } from './collection.service';
 import { CreateCollectionDto, UpdateCollectionDto } from './dto/collection.dto';
@@ -25,7 +26,7 @@ import { CollectionEntity } from './entity/collection.entity';
 @ApiTags('collections')
 @Controller('collections')
 export class CollectionController {
-  constructor(private collectionService: CollectionService) {}
+  constructor(private collectionService: CollectionService, private albumService: AlbumService) {}
 
   @ApiOkResponse({ type: [CollectionEntity] })
   @Get()
