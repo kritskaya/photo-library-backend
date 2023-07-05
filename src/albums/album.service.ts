@@ -48,25 +48,35 @@ export class AlbumService {
   async delete(id: number): Promise<Album> {
     const deletedPhotoIds: number[] = [];
 
-    const albumLocations = await this.prisma.location.findMany({
-      where: {
-        albumId: id,
-      },
-    });
-
-    for (const _albumLocation of albumLocations) {
-      const location = await this.prisma.location.findFirst({
+    // all photos from deleted albums
+    const deletedAlbumsPhotoIds = (
+      await this.prisma.location.findMany({
         where: {
-          id: {
+          albumId: id,
+        },
+      })
+    ).map((location) => location.photoId);
+
+    // all photos from deleted albums that related to another not deleted albums
+    const deletedAlbumsManyLocationsPhotoIds = (
+      await this.prisma.location.findMany({
+        where: {
+          albumId: {
             not: id,
           },
+          photoId: {
+            in: deletedAlbumsPhotoIds,
+          },
         },
-      });
+      })
+    ).map((location) => location.photoId);
 
-      if (!location) {
-        deletedPhotoIds.push(location.photoId);
+    // photos that located only in the deleted albums
+    deletedAlbumsPhotoIds.forEach((photoId) => {
+      if (deletedAlbumsManyLocationsPhotoIds.includes(photoId)) {
+        deletedPhotoIds.push(photoId);
       }
-    }
+    });
 
     const [_covers, _deletedLocations, _deletedPhoto, deletedAlbum] =
       await this.prisma.$transaction([
