@@ -43,11 +43,16 @@ export class PhotoController {
 
   @ApiOkResponse({ type: [PhotoEntity] })
   @Get()
-  async findMany(@Query(ValidationPipe) queryParams: PhotosQueryParams) {
+  async findMany(@Query(new ValidationPipe({ transform: true })) queryParams: PhotosQueryParams) {
     const { page, perPage, ...rest } = queryParams;
-    const photos = await this.photoService.findMany(Number(perPage), Number(page), rest);
+    const photos = await this.photoService.findMany(perPage, page, rest);
 
-    return photos;
+    const count = await this.photoService.count(rest);
+
+    return {
+      data: photos,
+      totalCount: count,
+    };
   }
 
   @ApiCreatedResponse({ type: PhotoEntity })

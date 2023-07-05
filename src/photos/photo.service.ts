@@ -83,4 +83,10 @@ export class PhotoService {
 
     return deletedPhoto;
   }
+
+  async count(condition: Prisma.PhotoWhereInput): Promise<number> {
+    return this.prisma.photo.count({
+      where: condition,
+    });
+  }
 }
