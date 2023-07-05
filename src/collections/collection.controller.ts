@@ -17,8 +17,8 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AlbumService } from 'src/albums/album.service';
-import { ExceptionMessages } from 'src/common/messages';
+import { AlbumService } from '../albums/album.service';
+import { ExceptionMessages } from '../common/messages';
 import { CollectionService } from './collection.service';
 import { CreateCollectionDto, UpdateCollectionDto } from './dto/collection.dto';
 import { CollectionEntity } from './entity/collection.entity';

@@ -1,5 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { AlbumModule } from 'src/albums/album.module';
+import { AlbumModule } from '../albums/album.module';
 import { CollectionController } from './collection.controller';
 import { CollectionService } from './collection.service';
 

@@ -1,6 +1,6 @@
 import { Body, Injectable } from '@nestjs/common';
 import { Album } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateAlbumDto, UpdateAlbumDto } from './dto/album.dto';
 
 @Injectable()

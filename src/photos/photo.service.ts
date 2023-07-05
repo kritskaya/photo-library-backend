@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Photo, Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PHOTOS_PER_PAGE_DEFAULT, START_PAGE } from '../common/constants';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
 
 @Injectable()
@@ -11,11 +12,14 @@ export class PhotoService {
     return this.prisma.photo.findMany();
   }
 
-  async findMany(perPage = 20, page = 0, condition?: Prisma.PhotoWhereInput) {
-    console.log(perPage, page);
+  async findMany(
+    perPage = PHOTOS_PER_PAGE_DEFAULT,
+    page = START_PAGE,
+    condition?: Prisma.PhotoWhereInput,
+  ) {
     return this.prisma.photo.findMany({
-      skip: perPage && page ? perPage * page : 0,
-      take: perPage || 20,
+      skip: perPage && page ? perPage * page : START_PAGE,
+      take: perPage || PHOTOS_PER_PAGE_DEFAULT,
       where: condition,
     });
   }

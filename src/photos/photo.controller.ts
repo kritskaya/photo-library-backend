@@ -16,12 +16,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
-import { PhotosQueryParams } from './params/photo.params';
-import { PhotoService } from './photo.service';
-import { imageFileFilter } from './multer/imagePhotoFilter';
-import { storage } from './multer/multerStorage';
-import { UPLOAD_PATH } from 'src/common/constants';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -31,10 +25,16 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
+import { PhotosQueryParams } from './params/photo.params';
+import { PhotoService } from './photo.service';
+import { imageFileFilter } from './multer/imagePhotoFilter';
+import { storage } from './multer/multerStorage';
 import { PhotoEntity } from './entity/photo.entity';
-import { ExceptionMessages } from 'src/common/messages';
 import { UploadResponseEntity } from './entity/upload.response.entity';
 import { FilesUploadDto } from './dto/file.dto';
+import { UPLOAD_PATH } from '../common/constants';
+import { ExceptionMessages } from '../common/messages';
 
 @ApiTags('photos')
 @Controller('photos')
@@ -96,7 +96,6 @@ export class PhotoController {
     @UploadedFiles(new ParseFilePipe({ fileIsRequired: true }))
     files: Express.Multer.File[],
   ) {
-    console.log(files);
     return {
       urls: files.map((file) => `${UPLOAD_PATH}/${file.originalname}`),
     };

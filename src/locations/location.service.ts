@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Location } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateLocationDto } from './dto/location.dto';
 
 @Injectable()

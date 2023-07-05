@@ -1,6 +1,6 @@
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { UPLOAD_PATH } from 'src/common/constants';
+import { UPLOAD_PATH } from '../../common/constants';
 
 export const storage = diskStorage({
   destination: UPLOAD_PATH,

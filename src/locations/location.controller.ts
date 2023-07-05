@@ -10,8 +10,8 @@ import {
   Post,
   ValidationPipe,
 } from '@nestjs/common';
-import { AlbumService } from 'src/albums/album.service';
-import { PhotoService } from 'src/photos/photo.service';
+import { AlbumService } from '../albums/album.service';
+import { PhotoService } from '../photos/photo.service';
 import { CreateLocationDto, DeleteLocationDto } from './dto/location.dto';
 import { LocationService } from './location.service';
 
