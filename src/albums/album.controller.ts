@@ -57,7 +57,7 @@ export class AlbumController {
   @ApiCreatedResponse({ type: AlbumEntity })
   @ApiBadRequestResponse()
   @Post()
-  async create(@Body(ValidationPipe) body: CreateAlbumDto) {
+  async create(@Body() body: CreateAlbumDto) {
     if (body.collectionId) {
       const collection = await this.collectionService.findById(body.collectionId);
 
@@ -82,7 +82,7 @@ export class AlbumController {
   @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.ALBUM_NOT_FOUND })
   @Put(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body(ValidationPipe) body: UpdateAlbumDto) {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateAlbumDto) {
     const album = await this.albumService.findById(id);
     if (!album) {
       throw new NotFoundException(ExceptionMessages.ALBUM_NOT_FOUND);

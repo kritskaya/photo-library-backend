@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -74,7 +73,7 @@ export class PhotoController {
   @ApiOkResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()
   @Post()
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  @UsePipes(new ValidationPipe({ transform: true }))
   async create(
     @Body(PathValidationPipe) body: CreatePhotoDto,
   ) {
@@ -112,7 +111,7 @@ export class PhotoController {
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body(new ValidationPipe({ whitelist: true })) body: UpdatePhotoDto,
+    @Body() body: UpdatePhotoDto,
   ) {
     const photo = await this.photoService.findById(id);
     if (!photo) {

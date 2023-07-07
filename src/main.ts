@@ -6,11 +6,14 @@ import { AppModule } from './app.module';
 import { CollectionModule } from './collections/collection.module';
 import { AlbumModule } from './albums/album.module';
 import { PhotoModule } from './photos/photo.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use('/upload', express.static(join(__dirname, '..', 'upload')));
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   const config = new DocumentBuilder().setTitle('Photo Library API').setVersion('1.0').build();
 

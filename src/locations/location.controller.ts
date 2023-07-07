@@ -54,7 +54,7 @@ export class LocationController {
   }
 
   @Post()
-  async createLocation(@Body(ValidationPipe) body: CreateLocationDto) {
+  async createLocation(@Body() body: CreateLocationDto) {
     const album = await this.albumService.findById(body.albumId);
     if (!album) {
       throw new BadRequestException('Album with such id not found');
@@ -70,7 +70,7 @@ export class LocationController {
   }
 
   @Delete()
-  async deleteLocation(@Body(ValidationPipe) body: DeleteLocationDto) {
+  async deleteLocation(@Body() body: DeleteLocationDto) {
     const locations = await this.locationService.findLocationsByPhoto(body.photoId);
     const location = locations.find((location) => location.albumId === body.albumId);
     if (!location) {

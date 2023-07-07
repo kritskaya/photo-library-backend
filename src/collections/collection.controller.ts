@@ -50,7 +50,7 @@ export class CollectionController {
   @ApiCreatedResponse({ type: CollectionEntity })
   @ApiBadRequestResponse()
   @Post()
-  async create(@Body(ValidationPipe) body: CreateCollectionDto) {
+  async create(@Body() body: CreateCollectionDto) {
     const newCollection = await this.collectionService.create(body);
     return newCollection;
   }
@@ -59,10 +59,7 @@ export class CollectionController {
   @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.COLLECTION_NOT_FOUND })
   @Put(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body(ValidationPipe) body: UpdateCollectionDto,
-  ) {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCollectionDto) {
     const collection = await this.collectionService.findById(id);
 
     if (!collection) {

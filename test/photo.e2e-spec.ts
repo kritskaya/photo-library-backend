@@ -4,7 +4,7 @@ import { ExceptionMessages } from '../src/common/messages';
 import { albumRoutes, photosRoutes } from './endpoints';
 
 const createPhotoDto = {
-  path: 'path',
+  path: 'test.jpg',
   receivedAt: '2023-06-26T13:08:16.833Z',
   officialID: 'BY-1234567',
   fromGroup: 'Russian RR',
@@ -58,7 +58,7 @@ describe('Photo Controller', () => {
 
       expect(getResponse.status).toBe(HttpStatus.OK);
       expect(getResponse.body.id).toBe(id);
-      expect(getResponse.body.path).toBe('path');
+      expect(getResponse.body.path).toBe('test.jpg');
       expect(getResponse.body.officialID).toBe('BY-1234567');
       expect(getResponse.body.fromGroup).toBe('Russian RR');
       expect(getResponse.body.fromPerson).toBe('UserName');
@@ -116,7 +116,7 @@ describe('Photo Controller', () => {
 
       expect(updateResponse1.status).toBe(HttpStatus.OK);
       expect(updateResponse1.body.id).toBe(id);
-      expect(updateResponse1.body.path).toBe('path');
+      expect(updateResponse1.body.path).toBe('test.jpg');
       expect(updateResponse1.body.receivedAt).toBe('2023-06-27T13:08:16.833Z');
       expect(updateResponse1.body.officialID).toBe('BY-1234568');
       expect(updateResponse1.body.fromGroup).toBe('Russian RR1');
@@ -130,7 +130,7 @@ describe('Photo Controller', () => {
 
       expect(updateResponse2.status).toBe(HttpStatus.OK);
       expect(updateResponse2.body.id).toBe(id);
-      expect(updateResponse2.body.path).toBe('path');
+      expect(updateResponse2.body.path).toBe('test.jpg');
       expect(updateResponse2.body.receivedAt).toBe('2023-06-27T13:08:16.833Z');
       expect(updateResponse2.body.officialID).toBe('BY-1234568');
       expect(updateResponse2.body.fromGroup).toBe('Russian RR1');
