@@ -116,7 +116,7 @@ describe('Photo Controller', () => {
 
       expect(updateResponse1.status).toBe(HttpStatus.OK);
       expect(updateResponse1.body.id).toBe(id);
-      expect(updateResponse1.body.path).toBe('path1');
+      expect(updateResponse1.body.path).toBe('path');
       expect(updateResponse1.body.receivedAt).toBe('2023-06-27T13:08:16.833Z');
       expect(updateResponse1.body.officialID).toBe('BY-1234568');
       expect(updateResponse1.body.fromGroup).toBe('Russian RR1');
@@ -130,7 +130,7 @@ describe('Photo Controller', () => {
 
       expect(updateResponse2.status).toBe(HttpStatus.OK);
       expect(updateResponse2.body.id).toBe(id);
-      expect(updateResponse2.body.path).toBe('path2');
+      expect(updateResponse2.body.path).toBe('path');
       expect(updateResponse2.body.receivedAt).toBe('2023-06-27T13:08:16.833Z');
       expect(updateResponse2.body.officialID).toBe('BY-1234568');
       expect(updateResponse2.body.fromGroup).toBe('Russian RR1');
@@ -142,7 +142,6 @@ describe('Photo Controller', () => {
       expect(cleanupResponse.status).toBe(HttpStatus.OK);
 
       const checkCleanupResponse = await request.put(photosRoutes.update(id)).send({
-        path: 'path3',
         description: 'photo description3',
       });
 
@@ -157,22 +156,16 @@ describe('Photo Controller', () => {
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const updateResponse1 = await request.put(photosRoutes.update(id)).send({
-        path: null,
+        receivedAt: '1234-4545lk',
       });
 
       expect(updateResponse1.status).toBe(HttpStatus.BAD_REQUEST);
 
       const updateResponse2 = await request.put(photosRoutes.update(id)).send({
-        receivedAt: '1234-4545lk',
-      });
-
-      expect(updateResponse2.status).toBe(HttpStatus.BAD_REQUEST);
-
-      const updateResponse3 = await request.put(photosRoutes.update(id)).send({
         officialID: '1234567',
       });
 
-      expect(updateResponse3.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(updateResponse2.status).toBe(HttpStatus.BAD_REQUEST);
 
       const cleanupResponse = await request.delete(photosRoutes.delete(id));
 
