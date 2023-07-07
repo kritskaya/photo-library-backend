@@ -72,7 +72,9 @@ export class PhotoController {
   @ApiOkResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()
   @Post()
-  async create(@Body(new ValidationPipe({ transform: true })) body: CreatePhotoDto) {
+  async create(
+    @Body(new ValidationPipe({ transform: true, whitelist: true })) body: CreatePhotoDto,
+  ) {
     const newPhoto = await this.photoService.create(body);
 
     return newPhoto;
@@ -105,7 +107,10 @@ export class PhotoController {
   @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
   @Put(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body(ValidationPipe) body: UpdatePhotoDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ValidationPipe({ whitelist: true })) body: UpdatePhotoDto,
+  ) {
     const photo = await this.photoService.findById(id);
     if (!photo) {
       throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
