@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Photo, Prisma } from '@prisma/client';
-import { PHOTOS_PER_PAGE_DEFAULT, START_PAGE } from '../common/constants';
+import { join } from 'path';
+import { PHOTOS_PER_PAGE_DEFAULT, START_PAGE, UPLOAD_PATH } from '../common/constants';
+import { deleteFile } from '../common/utils/fs.utils';
 import { PhotoPrismaRepositoty } from '../repositories/photo.prisma.repository';
 import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
 
@@ -33,7 +35,14 @@ export class PhotoService {
   }
 
   async delete(id: number): Promise<Photo> {
-    return this.photos.delete(id);
+    const deletedPhoto = await this.photos.delete(id);
+
+    if (deletedPhoto) {
+      const filePath = join(UPLOAD_PATH, deletedPhoto.path);
+      deleteFile(filePath);
+    }
+
+    return deletedPhoto;
   }
 
   async count(condition: Prisma.PhotoWhereInput): Promise<number> {
