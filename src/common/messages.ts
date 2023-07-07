@@ -4,4 +4,6 @@ export enum ExceptionMessages {
   ALBUM_NOT_FOUND = 'Album with such id is not found',
 
   PHOTO_NOT_FOUND = 'Photo with such id not found',
+
+  INVALID_PATH = 'File with specified path is not found',
 }

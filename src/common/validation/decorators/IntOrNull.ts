@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 
 @ValidatorConstraint({ name: 'IsIntOrNull', async: true })
-export class IsIntOrNullConstraint implements ValidatorConstraintInterface {
+class IsIntOrNullConstraint implements ValidatorConstraintInterface {
   validate(value: any): boolean {
     return Number.isInteger(value) || null;
   }

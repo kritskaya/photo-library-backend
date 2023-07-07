@@ -13,6 +13,7 @@ import {
   Query,
   UploadedFiles,
   UseInterceptors,
+  UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -35,6 +36,7 @@ import { UploadResponseEntity } from './entity/upload.response.entity';
 import { FilesUploadDto } from './dto/file.dto';
 import { UPLOAD_PATH } from '../common/constants';
 import { ExceptionMessages } from '../common/messages';
+import { PathValidationPipe } from '../common/validation/pipes/PathValidationPipe';
 
 @ApiTags('photos')
 @Controller('photos')
@@ -72,8 +74,9 @@ export class PhotoController {
   @ApiOkResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()
   @Post()
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async create(
-    @Body(new ValidationPipe({ transform: true, whitelist: true })) body: CreatePhotoDto,
+    @Body(PathValidationPipe) body: CreatePhotoDto,
   ) {
     const newPhoto = await this.photoService.create(body);
 
