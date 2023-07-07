@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Photo, Prisma } from '@prisma/client';
 import { PHOTOS_PER_PAGE_DEFAULT, START_PAGE } from '../common/constants';
-import { PrismaService } from '../prisma/prisma.service';
+import { PhotoPrismaRepositoty } from '../repositories/photo.prisma.repository';
 import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
 
 @Injectable()
 export class PhotoService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private photos: PhotoPrismaRepositoty) {}
 
   async findAll(): Promise<Photo[]> {
-    return this.prisma.photo.findMany();
+    return this.photos.findAll();
   }
 
   async findMany(
@@ -17,80 +17,26 @@ export class PhotoService {
     page = START_PAGE,
     condition?: Prisma.PhotoWhereInput,
   ) {
-    return this.prisma.photo.findMany({
-      skip: perPage && page ? perPage * page : START_PAGE,
-      take: perPage || PHOTOS_PER_PAGE_DEFAULT,
-      where: condition,
-    });
+    return this.photos.findMany(perPage, page, condition);
   }
 
   async findById(id: number): Promise<Photo> {
-    return this.prisma.photo.findUnique({
-      where: {
-        id,
-      },
-    });
+    return this.photos.findById(id);
   }
 
   async create(createPhotoDto: CreatePhotoDto): Promise<Photo> {
-    return this.prisma.photo.create({
-      data: {
-        ...createPhotoDto,
-        receivedAt: new Date(createPhotoDto.receivedAt),
-      },
-    });
+    return this.photos.create(createPhotoDto);
   }
 
   async update(id: number, updatePhotoDto: UpdatePhotoDto, oldPhoto: Photo): Promise<Photo> {
-    return this.prisma.photo.update({
-      where: {
-        id,
-      },
-      data: {
-        ...updatePhotoDto,
-        receivedAt:
-          updatePhotoDto.receivedAt === undefined
-            ? oldPhoto.receivedAt
-            : updatePhotoDto.receivedAt
-            ? new Date(updatePhotoDto.receivedAt)
-            : updatePhotoDto.receivedAt,
-      },
-    });
+    return this.photos.update(id, updatePhotoDto, oldPhoto);
   }
 
   async delete(id: number): Promise<Photo> {
-    const [_covers, _deletedLocations, deletedPhoto] = await this.prisma.$transaction([
-      // update album covers
-      this.prisma.album.updateMany({
-        data: {
-          coverId: null,
-        },
-        where: {
-          coverId: id,
-        },
-      }),
-
-      // delete locations
-      this.prisma.location.deleteMany({
-        where: {
-          photoId: id,
-        },
-      }),
-
-      //delete photo
-      this.prisma.photo.delete({
-        where: {
-          id,
-        },
-      }),
-    ]);
-
-    return deletedPhoto;
+    return this.photos.delete(id);
   }
 
   async count(condition: Prisma.PhotoWhereInput): Promise<number> {
-    return this.prisma.photo.count({
-      where: condition,
-    });
+    return this.photos.count(condition);
   }
 }

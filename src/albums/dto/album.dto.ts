@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIntOrNull } from '../../common/validation/IntOrNull';
+import { IsIntOrNull } from '../../common/decorators/IntOrNull';
 
 export class CreateAlbumDto {
   @ApiProperty()
