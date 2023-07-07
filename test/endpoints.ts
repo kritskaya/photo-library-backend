@@ -4,6 +4,7 @@ export const photosRoutes = {
   create: '/photos',
   update: (id) => `/photos/${id}`,
   delete: (id) => `/photos/${id}`,
+  upload: '/photos/upload',
 };
 
 export const albumRoutes = {

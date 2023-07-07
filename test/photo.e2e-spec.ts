@@ -1,4 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
+import { join } from 'path';
 import * as req from 'supertest';
 import { ExceptionMessages } from '../src/common/messages';
 import { albumRoutes, photosRoutes } from './endpoints';
@@ -11,6 +12,8 @@ const createPhotoDto = {
   fromPerson: 'UserName',
   description: 'photo description',
 };
+
+const TEST_PHOTO_FILENAME = join('test', 'test.jpg');
 
 describe('Photo Controller', () => {
   const request = req('localhost:3000');
@@ -25,6 +28,13 @@ describe('Photo Controller', () => {
     });
 
     it('should get photo by id', async () => {
+      const fileResponse = await request
+        .post(photosRoutes.upload)
+        .set('Content-Type', 'multipart/form-data')
+        .attach('files', TEST_PHOTO_FILENAME);
+
+      expect(fileResponse.status).toBe(HttpStatus.CREATED);
+
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
 
       const { id } = creationResponse.body;
@@ -48,6 +58,11 @@ describe('Photo Controller', () => {
 
   describe('POST', () => {
     it('should create new entity correctly', async () => {
+      await request
+        .post(photosRoutes.upload)
+        .set('Content-Type', 'multipart/form-data')
+        .attach('files', join('.', TEST_PHOTO_FILENAME));
+
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
 
       const { id } = creationResponse.body;
@@ -70,6 +85,11 @@ describe('Photo Controller', () => {
     });
 
     it('should return BAD_REQUEST in case of invalid data', async () => {
+      await request
+        .post(photosRoutes.upload)
+        .set('Content-Type', 'multipart/form-data')
+        .attach('files', join('.', TEST_PHOTO_FILENAME));
+
       const response1 = await request.post(photosRoutes.create).send({
         receivedAt: '2023-06-26T13:08:16.833Z',
       });
@@ -99,6 +119,11 @@ describe('Photo Controller', () => {
 
   describe('PUT', () => {
     it('should update entity correctly', async () => {
+      await request
+        .post(photosRoutes.upload)
+        .set('Content-Type', 'multipart/form-data')
+        .attach('files', join('.', TEST_PHOTO_FILENAME));
+
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
 
       const { id } = creationResponse.body;
@@ -149,6 +174,11 @@ describe('Photo Controller', () => {
     });
 
     it('should return BAD_REQUEST in case of invalid data', async () => {
+      await request
+        .post(photosRoutes.upload)
+        .set('Content-Type', 'multipart/form-data')
+        .attach('files', join('.', TEST_PHOTO_FILENAME));
+
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
 
       const { id } = creationResponse.body;
@@ -175,6 +205,11 @@ describe('Photo Controller', () => {
 
   describe('DELETE', () => {
     it('should delete photo and album covers with this photo if exist', async () => {
+      await request
+        .post(photosRoutes.upload)
+        .set('Content-Type', 'multipart/form-data')
+        .attach('files', join('.', TEST_PHOTO_FILENAME));
+
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
       const { id } = creationResponse.body;
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
