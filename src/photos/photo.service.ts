@@ -39,7 +39,7 @@ export class PhotoService {
 
     if (deletedPhoto) {
       const filePath = join(UPLOAD_PATH, deletedPhoto.path);
-      deleteFile(filePath);
+      await deleteFile(filePath);
     }
 
     return deletedPhoto;

@@ -1,7 +1,9 @@
 import { HttpStatus } from '@nestjs/common';
 import { join } from 'path';
 import * as req from 'supertest';
+import { UPLOAD_PATH } from '../src/common/constants';
 import { ExceptionMessages } from '../src/common/messages';
+import { fileExists } from '../src/common/utils/fs.utils';
 import { albumRoutes, photosRoutes } from './endpoints';
 
 const createPhotoDto = {
@@ -13,7 +15,9 @@ const createPhotoDto = {
   description: 'photo description',
 };
 
-const TEST_PHOTO_FILENAME = join('test', 'test.jpg');
+const TEST_PHOTO_FILENAME = 'test.jpg';
+const TEST_FOLDER = 'test';
+const TEST_FILE_PATH = join(TEST_FOLDER, TEST_PHOTO_FILENAME);
 
 describe('Photo Controller', () => {
   const request = req('localhost:3000');
@@ -31,7 +35,7 @@ describe('Photo Controller', () => {
       const fileResponse = await request
         .post(photosRoutes.upload)
         .set('Content-Type', 'multipart/form-data')
-        .attach('files', TEST_PHOTO_FILENAME);
+        .attach('files', TEST_FILE_PATH);
 
       expect(fileResponse.status).toBe(HttpStatus.CREATED);
 
@@ -61,7 +65,7 @@ describe('Photo Controller', () => {
       await request
         .post(photosRoutes.upload)
         .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_PHOTO_FILENAME));
+        .attach('files', join('.', TEST_FILE_PATH));
 
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
 
@@ -88,7 +92,7 @@ describe('Photo Controller', () => {
       await request
         .post(photosRoutes.upload)
         .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_PHOTO_FILENAME));
+        .attach('files', join('.', TEST_FILE_PATH));
 
       const response1 = await request.post(photosRoutes.create).send({
         receivedAt: '2023-06-26T13:08:16.833Z',
@@ -122,7 +126,7 @@ describe('Photo Controller', () => {
       await request
         .post(photosRoutes.upload)
         .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_PHOTO_FILENAME));
+        .attach('files', join('.', TEST_FILE_PATH));
 
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
 
@@ -177,7 +181,7 @@ describe('Photo Controller', () => {
       await request
         .post(photosRoutes.upload)
         .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_PHOTO_FILENAME));
+        .attach('files', join('.', TEST_FILE_PATH));
 
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
 
@@ -208,7 +212,7 @@ describe('Photo Controller', () => {
       await request
         .post(photosRoutes.upload)
         .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_PHOTO_FILENAME));
+        .attach('files', join('.', TEST_FILE_PATH));
 
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
       const { id } = creationResponse.body;
@@ -241,6 +245,23 @@ describe('Photo Controller', () => {
         albumRoutes.delete(createAlbumResponse.body.id),
       );
       expect(cleanupAlbumResponse.status).toBe(HttpStatus.OK);
+    });
+
+    it('should delete photo entity and photo file', async () => {
+      await request
+        .post(photosRoutes.upload)
+        .set('Content-Type', 'multipart/form-data')
+        .attach('files', join('.', TEST_FILE_PATH));
+
+      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const { id } = creationResponse.body;
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+
+      const deleteResponse = await request.delete(photosRoutes.delete(id));
+      expect(deleteResponse.status).toBe(HttpStatus.OK);
+
+      const isFileExists = await fileExists(join(UPLOAD_PATH, TEST_PHOTO_FILENAME));
+      expect(isFileExists).toBe(true);
     });
   });
 });
