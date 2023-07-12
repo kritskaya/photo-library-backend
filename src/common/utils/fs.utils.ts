@@ -1,4 +1,4 @@
-import { access, constants, rm } from 'fs/promises';
+import { access, constants, rm, stat } from 'fs/promises';
 
 export const deleteFile = async (path: string) => {
   try {
@@ -15,4 +15,13 @@ export const fileExists = async (path: string) => {
     return false;
   }
   return true;
+}
+
+export const getFileSize = async (path: string) => {
+  try {
+    const stats = await stat(path);
+    return stats.size;
+  } catch {
+    console.log('FS operation failed');
+  }
 }

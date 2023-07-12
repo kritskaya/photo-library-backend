@@ -3,11 +3,10 @@ import { join } from 'path';
 import * as req from 'supertest';
 import { UPLOAD_PATH } from '../src/common/constants';
 import { ExceptionMessages } from '../src/common/messages';
-import { fileExists } from '../src/common/utils/fs.utils';
+import { fileExists, getFileSize } from '../src/common/utils/fs.utils';
 import { albumRoutes, photosRoutes } from './endpoints';
 
 const createPhotoDto = {
-  // path: 'test.jpg',
   receivedAt: '2023-06-26T13:08:16.833Z',
   officialID: 'BY-1234567',
   fromGroup: 'Russian RR',
@@ -36,13 +35,6 @@ describe('Photo Controller', () => {
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
-
-      // const fileResponse = await request
-      //   .post(photosRoutes.upload(id))
-      //   .set('Content-Type', 'multipart/form-data')
-      //   .attach('files', TEST_FILE_PATH);
-
-      // expect(fileResponse.status).toBe(HttpStatus.CREATED);
 
       const getResponse = await request.get(photosRoutes.findOne(id));
       expect(getResponse.status).toBe(HttpStatus.OK);
@@ -108,7 +100,6 @@ describe('Photo Controller', () => {
       const { id } = creationResponse.body;
 
       const updateResponse1 = await request.put(photosRoutes.update(id)).send({
-        path: 'path1',
         receivedAt: '2023-06-27T13:08:16.833Z',
         officialID: 'BY-1234568',
         fromGroup: 'Russian RR1',
@@ -126,7 +117,6 @@ describe('Photo Controller', () => {
       expect(updateResponse1.body.description).toBe('photo description1');
 
       const updateResponse2 = await request.put(photosRoutes.update(id)).send({
-        path: 'path2',
         description: 'photo description2',
       });
 
@@ -222,7 +212,72 @@ describe('Photo Controller', () => {
   });
 
   describe('file uploads', () => {
-    
+    it('should upload photo if entity exists', async () => {
+      const creationResponse = await request.post(photosRoutes.create).send({
+        ...createPhotoDto,
+        path: TEST_PHOTO_FILENAME,
+      });
+      const { id } = creationResponse.body;
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+
+      const fileUploadResponse = await request
+        .post(photosRoutes.upload(id))
+        .set('Content-Type', 'multipart/form-data')
+        .attach('file', TEST_FILE_PATH);
+
+      expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
+
+      const checkUpdateResponse = await request.get(photosRoutes.findOne(id));
+
+      const filePath = join(UPLOAD_PATH, checkUpdateResponse.body.path);
+      expect(await fileExists(filePath)).toBe(true);
+      expect(await getFileSize(filePath)).toBe(await getFileSize(TEST_FILE_PATH));
+
+      const cleanupResponse = await request.delete(photosRoutes.delete(id));
+      expect(cleanupResponse.status).toBe(HttpStatus.OK);
+    });
+
+    it('should update entity path after photo file has been uploaded', async () => {
+      const creationResponse = await request.post(photosRoutes.create).send({
+        ...createPhotoDto,
+        path: TEST_PHOTO_FILENAME,
+      });
+      const { id } = creationResponse.body;
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+
+      const fileUploadResponse = await request
+        .post(photosRoutes.upload(id))
+        .set('Content-Type', 'multipart/form-data')
+        .attach('file', TEST_FILE_PATH);
+
+      expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
+
+      const checkUpdateResponse = await request.get(photosRoutes.findOne(id));
+      expect(creationResponse.body.path !== checkUpdateResponse.body.path).toBe(true);
+
+      const cleanupResponse = await request.delete(photosRoutes.delete(id));
+      expect(cleanupResponse.status).toBe(HttpStatus.OK);
+    });
+
+    it('should return NOT_FOUND exception if entity not exists', async () => {
+      const creationResponse = await request.post(photosRoutes.create).send({
+        ...createPhotoDto,
+        path: TEST_PHOTO_FILENAME,
+      });
+      const { id } = creationResponse.body;
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+
+      const cleanupResponse = await request.delete(photosRoutes.delete(id));
+      expect(cleanupResponse.status).toBe(HttpStatus.OK);
+
+      const fileUploadResponse = await request
+        .post(photosRoutes.upload(id))
+        .set('Content-Type', 'multipart/form-data')
+        .attach('file', TEST_FILE_PATH);
+
+      expect(fileUploadResponse.status).toBe(HttpStatus.NOT_FOUND);
+    });
+
     it('should delete photo entity and photo file', async () => {
       const creationResponse = await request.post(photosRoutes.create).send({
         ...createPhotoDto,
@@ -231,12 +286,12 @@ describe('Photo Controller', () => {
       const { id } = creationResponse.body;
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
-      const fileResponse = await request
+      const fileUploadResponse = await request
         .post(photosRoutes.upload(id))
         .set('Content-Type', 'multipart/form-data')
-        .attach('files', TEST_FILE_PATH);
+        .attach('file', TEST_FILE_PATH);
 
-      expect(fileResponse.status).toBe(HttpStatus.CREATED);
+      expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
 
       const deleteResponse = await request.delete(photosRoutes.delete(id));
       expect(deleteResponse.status).toBe(HttpStatus.OK);
