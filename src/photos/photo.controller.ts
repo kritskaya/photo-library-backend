@@ -24,6 +24,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
+  ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
 import { PhotosQueryParams } from './params/photo.params';
@@ -36,6 +37,8 @@ import { FileUploadDto } from './dto/file.dto';
 import { UPLOAD_PATH } from '../common/constants';
 import { ExceptionMessages } from '../common/messages';
 import { PathValidationPipe } from '../common/validation/pipes/PathValidationPipe';
+import { join } from 'path';
+import { getFileName } from '../common/utils/upload.utils';
 
 @ApiTags('photos')
 @Controller('photos')
@@ -82,6 +85,7 @@ export class PhotoController {
   @ApiCreatedResponse({ type: UploadResponseEntity })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
+  @ApiUnprocessableEntityResponse()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'file with format *.jpg, *.png, *.gif',
@@ -102,6 +106,7 @@ export class PhotoController {
     const photo = await this.photoService.findById(id);
 
     if (!photo) {
+      this.photoService.deleteFileByPath(join(UPLOAD_PATH, getFileName(file.originalname, id)));
       throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 

@@ -40,10 +40,16 @@ export class PhotoService {
 
     if (deletedPhoto && deletedPhoto.path) {
       const filePath = join(UPLOAD_PATH, deletedPhoto.path);
-      await deleteFile(filePath);
+      await this.deleteFileByPath(filePath);
     }
 
     return deletedPhoto;
+  }
+
+  async deleteFileByPath(path: string) {
+    if (path) {
+      await deleteFile(path);
+    }
   }
 
   async count(condition: Prisma.PhotoWhereInput): Promise<number> {
