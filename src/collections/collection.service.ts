@@ -44,7 +44,7 @@ export class CollectionService {
     const deletedAlbumsIds = (
       await this.prisma.album.findMany({
         where: {
-          collcetionId: id,
+          collectionId: id,
         },
       })
     ).map((album) => album.id);

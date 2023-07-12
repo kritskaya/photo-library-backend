@@ -26,8 +26,8 @@ model Album {
   cover   Photo? @relation(fields: [coverId], references: [id])
   coverId Int?
 
-  collection Collection? @relation(fields: [collcetionId], references: [id])
-  collcetionId Int?
+  collection Collection? @relation(fields: [collectionId], references: [id])
+  collectionId Int?
 
   photos Location[]
 
