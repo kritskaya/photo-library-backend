@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   ValidationPipe,
 } from '@nestjs/common';
 import {
@@ -24,6 +25,7 @@ import { PhotoService } from '../photos/photo.service';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto, UpdateAlbumDto } from './dto/album.dto';
 import { AlbumEntity } from './entity/album.entity';
+import { AlbumQueryParams } from './params/album.params';
 
 @ApiTags('albums')
 @Controller('albums')
@@ -36,8 +38,17 @@ export class AlbumController {
 
   @ApiOkResponse({ type: [AlbumEntity] })
   @Get()
-  async findAll() {
-    return await this.albumService.findAll();
+  async findMany(@Query(new ValidationPipe({ transform: true })) queryParams: AlbumQueryParams) {
+    const { page, perPage, ...rest } = queryParams;
+    const albums = await this.albumService.findMany(perPage, page, rest);
+
+    const count = await this.albumService.count(rest);
+
+    return {
+      data: albums,
+      totalCount: count,
+    };
+    //return await this.albumService.findAll();
   }
 
   @ApiOkResponse({ type: AlbumEntity })

@@ -1,5 +1,6 @@
-import { Body, Injectable } from '@nestjs/common';
-import { Album } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { Album, Prisma } from '@prisma/client';
+import { ALBUMS_PER_PAGE_DEFAULT, START_PAGE } from '../common/constants';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAlbumDto, UpdateAlbumDto } from './dto/album.dto';
 
@@ -9,6 +10,18 @@ export class AlbumService {
 
   async findAll(): Promise<Album[]> {
     return this.prisma.album.findMany();
+  }
+
+  async findMany(
+    perPage = ALBUMS_PER_PAGE_DEFAULT,
+    page = START_PAGE,
+    condition?: Prisma.AlbumWhereInput,
+  ): Promise<Album[]> {
+    return this.prisma.album.findMany({
+      skip: perPage && page ? perPage * page : START_PAGE,
+      take: perPage || ALBUMS_PER_PAGE_DEFAULT,
+      where: condition,
+    });
   }
 
   async findById(id: number): Promise<Album> {
@@ -24,7 +37,7 @@ export class AlbumService {
       data: {
         name: createAlbumDto.name,
         coverId: createAlbumDto.coverId,
-        collcetionId: createAlbumDto.collectionId,
+        collectionId: createAlbumDto.collectionId,
       },
     });
   }
@@ -37,10 +50,10 @@ export class AlbumService {
       data: {
         name: updateAlbumDto.name ? updateAlbumDto.name : oldAlbum.name,
         coverId: updateAlbumDto.coverId !== undefined ? updateAlbumDto.coverId : oldAlbum.coverId,
-        collcetionId:
+        collectionId:
           updateAlbumDto.collectionId !== undefined
             ? updateAlbumDto.collectionId
-            : oldAlbum.collcetionId,
+            : oldAlbum.collectionId,
       },
     });
   }
@@ -117,5 +130,11 @@ export class AlbumService {
       ]);
 
     return deletedAlbum;
+  }
+
+  async count(condition: Prisma.AlbumWhereInput): Promise<number> {
+    return this.prisma.album.count({
+      where: condition,
+    });
   }
 }
