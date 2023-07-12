@@ -50,16 +50,10 @@ export class PhotoService {
     return this.photos.count(condition);
   }
 
-  async upload(id: number, oldPhoto: Photo, files: Express.Multer.File[]) {
-    const urls: string[] = [];
+  async upload(id: number, oldPhoto: Photo, file: Express.Multer.File) {
+    const fileName = getFileName(file.originalname, id);
 
-    for (const file of files) {
-      const fileName = getFileName(file.originalname, id);
-      
-      await this.photos.update(id, { path: fileName }, oldPhoto);
-      urls.push(`${UPLOAD_PATH}/${fileName}`);
-    }
-
-    return urls;
-  };
+    const updatedPhoto = await this.photos.update(id, { path: fileName }, oldPhoto);
+    return updatedPhoto;
+  }
 }

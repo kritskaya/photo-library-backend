@@ -10,18 +10,17 @@ import {
   Post,
   Put,
   Query,
-  UploadedFiles,
+  UploadedFile,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
-  ApiGatewayTimeoutResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
@@ -33,11 +32,10 @@ import { imageFileFilter } from './multer/imagePhotoFilter';
 import { storage } from './multer/multerStorage';
 import { PhotoEntity } from './entity/photo.entity';
 import { UploadResponseEntity } from './entity/upload.response.entity';
-import { FilesUploadDto } from './dto/file.dto';
+import { FileUploadDto } from './dto/file.dto';
 import { UPLOAD_PATH } from '../common/constants';
 import { ExceptionMessages } from '../common/messages';
 import { PathValidationPipe } from '../common/validation/pipes/PathValidationPipe';
-import { getFileName } from '../common/utils/upload.utils';
 
 @ApiTags('photos')
 @Controller('photos')
@@ -72,15 +70,6 @@ export class PhotoController {
     return photo;
   }
 
-  // @ApiOkResponse({ type: PhotoEntity })
-  // @ApiBadRequestResponse()
-  // @Post()
-  // @UsePipes(new ValidationPipe({ transform: true }))
-  // async create(@Body(PathValidationPipe) body: CreatePhotoDto) {
-  //   const newPhoto = await this.photoService.create(body);
-
-  //   return newPhoto;
-  // }
   @ApiOkResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()
   @Post()
@@ -95,20 +84,20 @@ export class PhotoController {
   @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'List of images with format *.jpg, *.png, *.gif',
-    type: FilesUploadDto,
+    description: 'file with format *.jpg, *.png, *.gif',
+    type: FileUploadDto,
   })
   @Post(':id/upload')
   @UseInterceptors(
-    FilesInterceptor('files', 20, {
+    FileInterceptor('file', {
       fileFilter: imageFileFilter,
       storage: storage,
     }),
   )
   async uploadFile(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFiles(new ParseFilePipe({ fileIsRequired: true }))
-    files: Express.Multer.File[],
+    @UploadedFile(new ParseFilePipe({ fileIsRequired: true }))
+    file: Express.Multer.File,
   ) {
     const photo = await this.photoService.findById(id);
 
@@ -116,10 +105,11 @@ export class PhotoController {
       throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 
-    const urls = await this.photoService.upload(id, photo, files);
+    const updatedPhoto = await this.photoService.upload(id, photo, file);
 
     return {
-      urls: urls,
+      data: updatedPhoto,
+      url: `${UPLOAD_PATH}/${updatedPhoto.path}`,
     };
   }
 
