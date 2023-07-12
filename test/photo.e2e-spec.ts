@@ -278,7 +278,7 @@ describe('Photo Controller', () => {
       expect(fileUploadResponse.status).toBe(HttpStatus.NOT_FOUND);
     });
 
-    it('should return BAD_REQUSET if file has wrong exension', async () => {
+    it('should return BAD_REQUEST if file has wrong exension', async () => {
       const creationResponse = await request.post(photosRoutes.create).send({
         ...createPhotoDto,
         path: TEST_PHOTO_FILENAME,
@@ -294,6 +294,24 @@ describe('Photo Controller', () => {
         .attach('file', TEST_FILE_PATH2);
 
       expect(fileUploadResponse.status).toBe(HttpStatus.UNPROCESSABLE_ENTITY);
+
+      const cleanupResponse = await request.delete(photosRoutes.delete(id));
+      expect(cleanupResponse.status).toBe(HttpStatus.OK);
+    });
+
+    it('should return BAD_REQUEST if file has not been attached', async () => {
+      const creationResponse = await request.post(photosRoutes.create).send({
+        ...createPhotoDto,
+        path: TEST_PHOTO_FILENAME,
+      });
+      const { id } = creationResponse.body;
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+
+      const fileUploadResponse = await request
+        .post(photosRoutes.upload(id))
+        .set('Content-Type', 'multipart/form-data');
+
+      expect(fileUploadResponse.status).toBe(HttpStatus.BAD_REQUEST);
 
       const cleanupResponse = await request.delete(photosRoutes.delete(id));
       expect(cleanupResponse.status).toBe(HttpStatus.OK);
