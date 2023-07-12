@@ -21,6 +21,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiGatewayTimeoutResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
@@ -36,6 +37,7 @@ import { FilesUploadDto } from './dto/file.dto';
 import { UPLOAD_PATH } from '../common/constants';
 import { ExceptionMessages } from '../common/messages';
 import { PathValidationPipe } from '../common/validation/pipes/PathValidationPipe';
+import { getFileName } from '../common/utils/upload.utils';
 
 @ApiTags('photos')
 @Controller('photos')
@@ -70,13 +72,19 @@ export class PhotoController {
     return photo;
   }
 
+  // @ApiOkResponse({ type: PhotoEntity })
+  // @ApiBadRequestResponse()
+  // @Post()
+  // @UsePipes(new ValidationPipe({ transform: true }))
+  // async create(@Body(PathValidationPipe) body: CreatePhotoDto) {
+  //   const newPhoto = await this.photoService.create(body);
+
+  //   return newPhoto;
+  // }
   @ApiOkResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()
   @Post()
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async create(
-    @Body(PathValidationPipe) body: CreatePhotoDto,
-  ) {
+  async create(@Body(new ValidationPipe({ transform: true })) body: CreatePhotoDto) {
     const newPhoto = await this.photoService.create(body);
 
     return newPhoto;
@@ -84,12 +92,13 @@ export class PhotoController {
 
   @ApiCreatedResponse({ type: UploadResponseEntity })
   @ApiBadRequestResponse()
+  @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'List of images with format *.jpg, *.png, *.gif',
     type: FilesUploadDto,
   })
-  @Post('upload')
+  @Post(':id/upload')
   @UseInterceptors(
     FilesInterceptor('files', 20, {
       fileFilter: imageFileFilter,
@@ -97,21 +106,31 @@ export class PhotoController {
     }),
   )
   async uploadFile(
+    @Param('id', ParseIntPipe) id: number,
     @UploadedFiles(new ParseFilePipe({ fileIsRequired: true }))
     files: Express.Multer.File[],
   ) {
+    const photo = await this.photoService.findById(id);
+
+    if (!photo) {
+      throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
+    }
+
+    const urls = await this.photoService.upload(id, photo, files);
+
     return {
-      urls: files.map((file) => `${UPLOAD_PATH}/${file.originalname}`),
+      urls: urls,
     };
   }
 
   @ApiOkResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
+  @UsePipes(new ValidationPipe({ transform: true }))
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdatePhotoDto,
+    @Body(PathValidationPipe) body: UpdatePhotoDto,
   ) {
     const photo = await this.photoService.findById(id);
     if (!photo) {

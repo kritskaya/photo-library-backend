@@ -4,7 +4,7 @@ export const deleteFile = async (path: string) => {
   try {
     await rm(path);
   } catch {
-    throw new Error('FS operation failed');
+    console.log('FS operation failed');
   }
 };
 

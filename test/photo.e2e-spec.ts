@@ -7,7 +7,7 @@ import { fileExists } from '../src/common/utils/fs.utils';
 import { albumRoutes, photosRoutes } from './endpoints';
 
 const createPhotoDto = {
-  path: 'test.jpg',
+  // path: 'test.jpg',
   receivedAt: '2023-06-26T13:08:16.833Z',
   officialID: 'BY-1234567',
   fromGroup: 'Russian RR',
@@ -32,25 +32,22 @@ describe('Photo Controller', () => {
     });
 
     it('should get photo by id', async () => {
-      const fileResponse = await request
-        .post(photosRoutes.upload)
-        .set('Content-Type', 'multipart/form-data')
-        .attach('files', TEST_FILE_PATH);
-
-      expect(fileResponse.status).toBe(HttpStatus.CREATED);
-
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
 
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+      // const fileResponse = await request
+      //   .post(photosRoutes.upload(id))
+      //   .set('Content-Type', 'multipart/form-data')
+      //   .attach('files', TEST_FILE_PATH);
+
+      // expect(fileResponse.status).toBe(HttpStatus.CREATED);
 
       const getResponse = await request.get(photosRoutes.findOne(id));
-
       expect(getResponse.status).toBe(HttpStatus.OK);
 
       const cleanupResponse = await request.delete(photosRoutes.delete(id));
-
       expect(cleanupResponse.status).toBe(HttpStatus.OK);
 
       const getInvalidIdResponse = await request.get(photosRoutes.findOne(id));
@@ -58,26 +55,26 @@ describe('Photo Controller', () => {
       expect(getInvalidIdResponse.status).toBe(HttpStatus.NOT_FOUND);
       expect(getInvalidIdResponse.body.message).toBe(ExceptionMessages.PHOTO_NOT_FOUND);
     });
+
+    it('should return BAD_REQUEST in case of invalid id', async () => {
+      const getInvalidIdResponse = await request.get(photosRoutes.findOne('abc'));
+
+      expect(getInvalidIdResponse.status).toBe(HttpStatus.BAD_REQUEST);
+    });
   });
 
   describe('POST', () => {
     it('should create new entity correctly', async () => {
-      await request
-        .post(photosRoutes.upload)
-        .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_FILE_PATH));
-
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
-
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const getResponse = await request.get(photosRoutes.findOne(id));
 
       expect(getResponse.status).toBe(HttpStatus.OK);
       expect(getResponse.body.id).toBe(id);
-      expect(getResponse.body.path).toBe('test.jpg');
+      expect(getResponse.body.path).toBeNull();
       expect(getResponse.body.officialID).toBe('BY-1234567');
       expect(getResponse.body.fromGroup).toBe('Russian RR');
       expect(getResponse.body.fromPerson).toBe('UserName');
@@ -89,50 +86,26 @@ describe('Photo Controller', () => {
     });
 
     it('should return BAD_REQUEST in case of invalid data', async () => {
-      await request
-        .post(photosRoutes.upload)
-        .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_FILE_PATH));
-
       const response1 = await request.post(photosRoutes.create).send({
-        receivedAt: '2023-06-26T13:08:16.833Z',
+        receivedAt: '123abc',
       });
 
       expect(response1.status).toBe(HttpStatus.BAD_REQUEST);
 
       const response2 = await request.post(photosRoutes.create).send({
-        path: null,
-        receivedAt: '2023-06-26T13:08:16.833Z',
-      });
-
-      expect(response2.status).toBe(HttpStatus.BAD_REQUEST);
-
-      const response3 = await request.post(photosRoutes.create).send({
-        receivedAt: '123',
-      });
-
-      expect(response3.status).toBe(HttpStatus.BAD_REQUEST);
-
-      const response4 = await request.post(photosRoutes.create).send({
         officialID: '1234567',
       });
 
-      expect(response4.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(response2.status).toBe(HttpStatus.BAD_REQUEST);
     });
   });
 
   describe('PUT', () => {
     it('should update entity correctly', async () => {
-      await request
-        .post(photosRoutes.upload)
-        .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_FILE_PATH));
-
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
-
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const updateResponse1 = await request.put(photosRoutes.update(id)).send({
         path: 'path1',
@@ -145,7 +118,7 @@ describe('Photo Controller', () => {
 
       expect(updateResponse1.status).toBe(HttpStatus.OK);
       expect(updateResponse1.body.id).toBe(id);
-      expect(updateResponse1.body.path).toBe('test.jpg');
+      expect(updateResponse1.body.path).toBeNull();
       expect(updateResponse1.body.receivedAt).toBe('2023-06-27T13:08:16.833Z');
       expect(updateResponse1.body.officialID).toBe('BY-1234568');
       expect(updateResponse1.body.fromGroup).toBe('Russian RR1');
@@ -159,7 +132,7 @@ describe('Photo Controller', () => {
 
       expect(updateResponse2.status).toBe(HttpStatus.OK);
       expect(updateResponse2.body.id).toBe(id);
-      expect(updateResponse2.body.path).toBe('test.jpg');
+      expect(updateResponse2.body.path).toBeNull();
       expect(updateResponse2.body.receivedAt).toBe('2023-06-27T13:08:16.833Z');
       expect(updateResponse2.body.officialID).toBe('BY-1234568');
       expect(updateResponse2.body.fromGroup).toBe('Russian RR1');
@@ -167,7 +140,6 @@ describe('Photo Controller', () => {
       expect(updateResponse2.body.description).toBe('photo description2');
 
       const cleanupResponse = await request.delete(photosRoutes.delete(id));
-
       expect(cleanupResponse.status).toBe(HttpStatus.OK);
 
       const checkCleanupResponse = await request.put(photosRoutes.update(id)).send({
@@ -178,16 +150,10 @@ describe('Photo Controller', () => {
     });
 
     it('should return BAD_REQUEST in case of invalid data', async () => {
-      await request
-        .post(photosRoutes.upload)
-        .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_FILE_PATH));
-
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
-
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const updateResponse1 = await request.put(photosRoutes.update(id)).send({
         receivedAt: '1234-4545lk',
@@ -205,15 +171,16 @@ describe('Photo Controller', () => {
 
       expect(cleanupResponse.status).toBe(HttpStatus.OK);
     });
+
+    it('should return BAD_REQUEST in case of invalid id', async () => {
+      const getInvalidIdResponse = await request.put(photosRoutes.update('abc'));
+
+      expect(getInvalidIdResponse.status).toBe(HttpStatus.BAD_REQUEST);
+    });
   });
 
   describe('DELETE', () => {
     it('should delete photo and album covers with this photo if exist', async () => {
-      await request
-        .post(photosRoutes.upload)
-        .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_FILE_PATH));
-
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
       const { id } = creationResponse.body;
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
@@ -247,21 +214,35 @@ describe('Photo Controller', () => {
       expect(cleanupAlbumResponse.status).toBe(HttpStatus.OK);
     });
 
-    it('should delete photo entity and photo file', async () => {
-      await request
-        .post(photosRoutes.upload)
-        .set('Content-Type', 'multipart/form-data')
-        .attach('files', join('.', TEST_FILE_PATH));
+    it('should return BAD_REQUEST in case of invalid id', async () => {
+      const getInvalidIdResponse = await request.delete(photosRoutes.delete('abc'));
 
-      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      expect(getInvalidIdResponse.status).toBe(HttpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('file uploads', () => {
+    
+    it('should delete photo entity and photo file', async () => {
+      const creationResponse = await request.post(photosRoutes.create).send({
+        ...createPhotoDto,
+        path: TEST_PHOTO_FILENAME,
+      });
       const { id } = creationResponse.body;
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
+
+      const fileResponse = await request
+        .post(photosRoutes.upload(id))
+        .set('Content-Type', 'multipart/form-data')
+        .attach('files', TEST_FILE_PATH);
+
+      expect(fileResponse.status).toBe(HttpStatus.CREATED);
 
       const deleteResponse = await request.delete(photosRoutes.delete(id));
       expect(deleteResponse.status).toBe(HttpStatus.OK);
 
       const isFileExists = await fileExists(join(UPLOAD_PATH, TEST_PHOTO_FILENAME));
-      expect(isFileExists).toBe(true);
+      expect(isFileExists).toBe(false);
     });
   });
 });

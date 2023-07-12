@@ -3,6 +3,7 @@ import { Photo, Prisma } from '@prisma/client';
 import { join } from 'path';
 import { PHOTOS_PER_PAGE_DEFAULT, START_PAGE, UPLOAD_PATH } from '../common/constants';
 import { deleteFile } from '../common/utils/fs.utils';
+import { getFileName } from '../common/utils/upload.utils';
 import { PhotoPrismaRepositoty } from '../repositories/photo.prisma.repository';
 import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
 
@@ -37,7 +38,7 @@ export class PhotoService {
   async delete(id: number): Promise<Photo> {
     const deletedPhoto = await this.photos.delete(id);
 
-    if (deletedPhoto) {
+    if (deletedPhoto && deletedPhoto.path) {
       const filePath = join(UPLOAD_PATH, deletedPhoto.path);
       await deleteFile(filePath);
     }
@@ -48,4 +49,17 @@ export class PhotoService {
   async count(condition: Prisma.PhotoWhereInput): Promise<number> {
     return this.photos.count(condition);
   }
+
+  async upload(id: number, oldPhoto: Photo, files: Express.Multer.File[]) {
+    const urls: string[] = [];
+
+    for (const file of files) {
+      const fileName = getFileName(file.originalname, id);
+      
+      await this.photos.update(id, { path: fileName }, oldPhoto);
+      urls.push(`${UPLOAD_PATH}/${fileName}`);
+    }
+
+    return urls;
+  };
 }
