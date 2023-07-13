@@ -69,6 +69,7 @@ export class AlbumService {
         },
       })
     ).map((location) => location.photoId);
+    console.log('all photos from deleted album', deletedAlbumPhotoIds);
 
     // all photos from deleted album that related to another not deleted albums
     const deletedAlbumManyLocationsPhotoIds = (
@@ -83,10 +84,14 @@ export class AlbumService {
         },
       })
     ).map((location) => location.photoId);
+    console.log(
+      'all photos from deleted album that related to another not deleted albums',
+      deletedAlbumManyLocationsPhotoIds,
+    );
 
     // photos that located only in the deleted albums
     deletedAlbumPhotoIds.forEach((photoId) => {
-      if (deletedAlbumManyLocationsPhotoIds.includes(photoId)) {
+      if (!deletedAlbumManyLocationsPhotoIds.includes(photoId)) {
         deletedPhotoIds.push(photoId);
       }
     });

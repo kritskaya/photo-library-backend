@@ -78,7 +78,7 @@ export class AlbumController {
     }
 
     if (body.coverId) {
-      const cover = this.photoService.findById(body.coverId);
+      const cover = await this.photoService.findById(body.coverId);
 
       if (!cover) {
         throw new BadRequestException(ExceptionMessages.PHOTO_NOT_FOUND);
@@ -108,7 +108,7 @@ export class AlbumController {
     }
 
     if (body.coverId) {
-      const cover = this.photoService.findById(body.coverId);
+      const cover = await this.photoService.findById(body.coverId);
 
       if (!cover) {
         throw new BadRequestException(ExceptionMessages.PHOTO_NOT_FOUND);
@@ -124,7 +124,7 @@ export class AlbumController {
   @ApiNotFoundResponse({ description: ExceptionMessages.ALBUM_NOT_FOUND })
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
-    const album = this.albumService.findById(id);
+    const album = await this.albumService.findById(id);
     if (!album) {
       throw new NotFoundException(ExceptionMessages.ALBUM_NOT_FOUND);
     }
