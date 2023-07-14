@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { CollectionService } from '../collections/collection.service';
 import { ExceptionMessages } from '../common/messages';
+import { NotEmptyPayloadPipe } from '../common/validation/pipes/NotEmptyPayloadPipe';
 import { PhotoService } from '../photos/photo.service';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto, UpdateAlbumDto } from './dto/album.dto';
@@ -93,7 +94,10 @@ export class AlbumController {
   @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.ALBUM_NOT_FOUND })
   @Put(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateAlbumDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(NotEmptyPayloadPipe) body: UpdateAlbumDto,
+  ) {
     const album = await this.albumService.findById(id);
     if (!album) {
       throw new NotFoundException(ExceptionMessages.ALBUM_NOT_FOUND);

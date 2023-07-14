@@ -39,6 +39,7 @@ import { ExceptionMessages } from '../common/messages';
 import { PathValidationPipe } from '../common/validation/pipes/PathValidationPipe';
 import { join } from 'path';
 import { getFileName } from '../common/utils/upload.utils';
+import { NotEmptyPayloadPipe } from '../common/validation/pipes/NotEmptyPayloadPipe';
 
 @ApiTags('photos')
 @Controller('photos')
@@ -125,7 +126,7 @@ export class PhotoController {
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body(PathValidationPipe) body: UpdatePhotoDto,
+    @Body(PathValidationPipe, NotEmptyPayloadPipe) body: UpdatePhotoDto,
   ) {
     const photo = await this.photoService.findById(id);
     if (!photo) {

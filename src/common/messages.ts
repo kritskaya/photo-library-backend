@@ -7,4 +7,5 @@ export enum ExceptionMessages {
   LOCATION_EXISTS = 'Location with such album and photo id has already exist',
 
   INVALID_PATH = 'File with specified path is not found',
+  EMPTY_PAYLOAD = 'Payload should not be empty',
 }

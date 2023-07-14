@@ -210,6 +210,20 @@ describe('Album Controller', () => {
       expect(collectionCleanupResponse.status).toBe(HttpStatus.OK);
     });
 
+    it('should return BAD_REQUEST in case of empty payload', async () => {
+      const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
+      expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
+
+      const { id } = albumCreationResponse.body;
+
+      const albumUpdateResponse = await request.put(albumRoutes.update(id)).send({});
+      expect(albumUpdateResponse.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(albumUpdateResponse.body.message).toBe(ExceptionMessages.EMPTY_PAYLOAD);
+
+      const cleanupAlbumResponse = await request.delete(albumRoutes.delete(id));
+      expect(cleanupAlbumResponse.status).toBe(HttpStatus.OK);
+    });
+
     it('should return BAD_REQUEST in case of wrong collection id', async () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);

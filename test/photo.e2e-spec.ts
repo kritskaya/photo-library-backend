@@ -143,7 +143,21 @@ describe('Photo Controller', () => {
       expect(checkCleanupResponse.status).toBe(HttpStatus.NOT_FOUND);
     });
 
-    it('should return BAD_REQUEST in case of invalid data', async () => {
+    it('should return BAD_REQUEST in case of empry payload', async () => {
+      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+
+      const { id } = creationResponse.body;
+
+      const updateResponse = await request.put(photosRoutes.update(id)).send({});
+      expect(updateResponse.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(updateResponse.body.message).toBe(ExceptionMessages.EMPTY_PAYLOAD);
+
+      const cleanupResponse = await request.delete(photosRoutes.delete(id));
+      expect(cleanupResponse.status).toBe(HttpStatus.OK);
+    });
+
+    it('should return BAD_REQUEST in case of invalid payload data', async () => {
       const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
@@ -152,23 +166,19 @@ describe('Photo Controller', () => {
       const updateResponse1 = await request.put(photosRoutes.update(id)).send({
         receivedAt: '1234-4545lk',
       });
-
       expect(updateResponse1.status).toBe(HttpStatus.BAD_REQUEST);
 
       const updateResponse2 = await request.put(photosRoutes.update(id)).send({
         officialID: '1234567',
       });
-
       expect(updateResponse2.status).toBe(HttpStatus.BAD_REQUEST);
 
       const cleanupResponse = await request.delete(photosRoutes.delete(id));
-
       expect(cleanupResponse.status).toBe(HttpStatus.OK);
     });
 
     it('should return BAD_REQUEST in case of invalid id', async () => {
       const getInvalidIdResponse = await request.put(photosRoutes.update('abc'));
-
       expect(getInvalidIdResponse.status).toBe(HttpStatus.BAD_REQUEST);
     });
   });
