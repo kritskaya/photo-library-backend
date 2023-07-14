@@ -9,12 +9,21 @@ import {
   ParseIntPipe,
   Post,
 } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AlbumService } from '../albums/album.service';
 import { ExceptionMessages } from '../common/messages';
 import { PhotoService } from '../photos/photo.service';
 import { CreateLocationDto, DeleteLocationDto } from './dto/location.dto';
+import { LocationEntity } from './entity/location.entity';
 import { LocationService } from './location.service';
 
+@ApiTags('locations')
 @Controller('locations')
 export class LocationController {
   constructor(
@@ -23,6 +32,9 @@ export class LocationController {
     private photoService: PhotoService,
   ) {}
 
+  @ApiOkResponse({ type: LocationEntity })
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse({ description: ExceptionMessages.LOCATION_NOT_FOUND })
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) id: number) {
     const location = await this.locationService.findLocationById(id);
@@ -33,6 +45,9 @@ export class LocationController {
     return location;
   }
 
+  @ApiOkResponse({ type: [LocationEntity] })
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse({ description: ExceptionMessages.ALBUM_NOT_FOUND })
   @Get('album/:id')
   async findByAlbumId(@Param('id', ParseIntPipe) id: number) {
     const album = await this.albumService.findById(id);
@@ -45,6 +60,9 @@ export class LocationController {
     return locations;
   }
 
+  @ApiOkResponse({ type: [LocationEntity] })
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
   @Get('photo/:id')
   async findByPhotoId(@Param('id', ParseIntPipe) id: number) {
     const photo = await this.photoService.findById(id);
@@ -57,6 +75,8 @@ export class LocationController {
     return locations;
   }
 
+  @ApiCreatedResponse({ type: LocationEntity })
+  @ApiBadRequestResponse()
   @Post()
   async create(@Body() body: CreateLocationDto) {
     const album = await this.albumService.findById(body.albumId);
@@ -81,6 +101,9 @@ export class LocationController {
     return newLocation;
   }
 
+  @ApiOkResponse({ type: LocationEntity })
+  @ApiBadRequestResponse()
+  @ApiNotFoundResponse({ description: ExceptionMessages.LOCATION_NOT_FOUND })
   @Delete(':id')
   // async deleteLocation(@Body() body: DeleteLocationDto) {
   async delete(@Param('id', ParseIntPipe) id: number) {
