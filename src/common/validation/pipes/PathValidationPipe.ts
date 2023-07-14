@@ -15,7 +15,6 @@ export class PathValidationPipe implements PipeTransform {
     const fullPath = join(UPLOAD_PATH, value.path);
 
     if (!(await fileExists(fullPath))) {
-      console.log('not exists');
       throw new BadRequestException(ExceptionMessages.INVALID_PATH);
     }
 

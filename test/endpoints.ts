@@ -24,6 +24,7 @@ export const collectionRoutes = {
 };
 
 export const locationRoutes = {
+  findById: (id) => `/locations/${id}`,
   findByAlbum: (id) => `/locations/album/${id}`,
   findByPhoto: (id) => `/locations/photo/${id}`,
   create: '/locations',

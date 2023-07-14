@@ -7,6 +7,14 @@ import { CreateLocationDto } from './dto/location.dto';
 export class LocationService {
   constructor(private prisma: PrismaService) {}
 
+  async findLocationById(locationId: number): Promise<Location> {
+    return this.prisma.location.findUnique({
+      where: {
+        id: locationId,
+      },
+    });
+  }
+
   async findLocationsByAlbum(albumId: number): Promise<Location[]> {
     return this.prisma.location.findMany({
       where: {
@@ -26,7 +34,7 @@ export class LocationService {
   async createLocation(createLocationDto: CreateLocationDto): Promise<Location> {
     return this.prisma.location.create({
       data: {
-        ...createLocationDto
+        ...createLocationDto,
       },
     });
   }

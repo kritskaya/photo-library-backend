@@ -8,9 +8,9 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  ValidationPipe,
 } from '@nestjs/common';
 import { AlbumService } from '../albums/album.service';
+import { ExceptionMessages } from '../common/messages';
 import { PhotoService } from '../photos/photo.service';
 import { CreateLocationDto, DeleteLocationDto } from './dto/location.dto';
 import { LocationService } from './location.service';
@@ -23,11 +23,21 @@ export class LocationController {
     private photoService: PhotoService,
   ) {}
 
+  @Get(':id')
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    const location = await this.locationService.findLocationById(id);
+    if (!location) {
+      throw new NotFoundException(ExceptionMessages.LOCATION_NOT_FOUND);
+    }
+
+    return location;
+  }
+
   @Get('album/:id')
-  async findLocationsByAlbum(@Param('id', ParseIntPipe) id: number) {
+  async findByAlbumId(@Param('id', ParseIntPipe) id: number) {
     const album = await this.albumService.findById(id);
     if (!album) {
-      throw new NotFoundException('Album with such id not found');
+      throw new NotFoundException(ExceptionMessages.ALBUM_NOT_FOUND);
     }
 
     const locations = await this.locationService.findLocationsByAlbum(id);
@@ -39,10 +49,10 @@ export class LocationController {
   }
 
   @Get('photo/:id')
-  async findLocationsByPhoto(@Param('id', ParseIntPipe) id: number) {
+  async findByPhotoId(@Param('id', ParseIntPipe) id: number) {
     const photo = await this.photoService.findById(id);
     if (!photo) {
-      throw new NotFoundException('Photo with such id not found');
+      throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 
     const locations = await this.locationService.findLocationsByPhoto(id);
@@ -54,30 +64,38 @@ export class LocationController {
   }
 
   @Post()
-  async createLocation(@Body() body: CreateLocationDto) {
+  async create(@Body() body: CreateLocationDto) {
     const album = await this.albumService.findById(body.albumId);
     if (!album) {
-      throw new BadRequestException('Album with such id not found');
+      throw new BadRequestException(ExceptionMessages.ALBUM_NOT_FOUND);
     }
 
     const photo = await this.photoService.findById(body.photoId);
     if (!photo) {
-      throw new BadRequestException('Photo with such id not found');
+      throw new BadRequestException(ExceptionMessages.PHOTO_NOT_FOUND);
+    }
+
+    const existingLocation = (await this.locationService.findLocationsByAlbum(body.albumId)).find(
+      (location) => location.photoId === body.photoId,
+    );
+
+    if (existingLocation) {
+      throw new BadRequestException(ExceptionMessages.LOCATION_EXISTS);
     }
 
     const newLocation = await this.locationService.createLocation(body);
     return newLocation;
   }
 
-  @Delete()
-  async deleteLocation(@Body() body: DeleteLocationDto) {
-    const locations = await this.locationService.findLocationsByPhoto(body.photoId);
-    const location = locations.find((location) => location.albumId === body.albumId);
+  @Delete(':id')
+  // async deleteLocation(@Body() body: DeleteLocationDto) {
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    const location = await this.locationService.findLocationById(id);
     if (!location) {
-      throw new NotFoundException('Location not found');
+      throw new NotFoundException(ExceptionMessages.LOCATION_NOT_FOUND);
     }
 
-    const deletedLocation = await this.locationService.deleteLocation(location.id);
+    const deletedLocation = await this.locationService.deleteLocation(id);
     return deletedLocation;
   }
 }
