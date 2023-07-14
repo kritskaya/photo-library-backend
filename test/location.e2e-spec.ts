@@ -49,7 +49,7 @@ describe('Location Controller', () => {
         locationRoutes.findByAlbum(albumCreationResponse.body.id),
       );
       expect(getAllLocationsResponse.status).toBe(HttpStatus.OK);
-      expect(getAllLocationsResponse.body.photoIds).toHaveLength(2);
+      expect(getAllLocationsResponse.body).toHaveLength(2);
 
       const locationCleanupResponse1 = await request.delete(
         locationRoutes.delete(locationCreationResponse1.body.id),
@@ -139,7 +139,7 @@ describe('Location Controller', () => {
         locationRoutes.findByPhoto(photoCreationResponse.body.id),
       );
       expect(getAllLocationsResponse.status).toBe(HttpStatus.OK);
-      expect(getAllLocationsResponse.body.albumIds).toHaveLength(2);
+      expect(getAllLocationsResponse.body).toHaveLength(2);
 
       const locationCleanupResponse1 = await request.delete(
         locationRoutes.delete(locationCreationResponse1.body.id),

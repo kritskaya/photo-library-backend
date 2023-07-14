@@ -42,10 +42,7 @@ export class LocationController {
 
     const locations = await this.locationService.findLocationsByAlbum(id);
 
-    return {
-      albumId: id,
-      photoIds: locations.map((location) => location.photoId),
-    };
+    return locations;
   }
 
   @Get('photo/:id')
@@ -57,10 +54,7 @@ export class LocationController {
 
     const locations = await this.locationService.findLocationsByPhoto(id);
 
-    return {
-      photoId: id,
-      albumIds: locations.map((location) => location.albumId),
-    };
+    return locations;
   }
 
   @Post()
