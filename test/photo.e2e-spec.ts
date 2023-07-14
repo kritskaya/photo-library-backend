@@ -4,7 +4,7 @@ import * as req from 'supertest';
 import { UPLOAD_PATH } from '../src/common/constants';
 import { ExceptionMessages } from '../src/common/messages';
 import { fileExists, getFileSize } from '../src/common/utils/fs.utils';
-import { albumRoutes, photosRoutes } from './endpoints';
+import { albumRoutes, locationRoutes, photosRoutes } from './endpoints';
 
 const createPhotoDto = {
   receivedAt: '2023-06-26T13:08:16.833Z',
@@ -12,6 +12,10 @@ const createPhotoDto = {
   fromGroup: 'Russian RR',
   fromPerson: 'UserName',
   description: 'photo description',
+};
+
+const createAlbumDto = {
+  name: 'Album Name',
 };
 
 const TEST_PHOTO_FILENAME = 'test.jpg';
@@ -202,6 +206,35 @@ describe('Photo Controller', () => {
         albumRoutes.delete(createAlbumResponse.body.id),
       );
       expect(cleanupAlbumResponse.status).toBe(HttpStatus.OK);
+    });
+
+    it('should delete locations with photo when this photo was deleted', async () => {
+      const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
+      expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
+
+      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
+
+      const locationCreationResponse = await request.post(locationRoutes.create).send({
+        albumId: albumCreationResponse.body.id,
+        photoId: photoCreationResponse.body.id,
+      });
+      expect(locationCreationResponse.status).toBe(HttpStatus.CREATED);
+
+      const deletePhotoResponse = await request.delete(
+        photosRoutes.delete(photoCreationResponse.body.id),
+      );
+      expect(deletePhotoResponse.status).toBe(HttpStatus.OK);
+
+      const locationResponse = await request.get(
+        locationRoutes.findById(locationCreationResponse.body.id),
+      );
+      expect(locationResponse.status).toBe(HttpStatus.NOT_FOUND);
+
+      const albumCleanupResponse = await request.delete(
+        albumRoutes.delete(albumCreationResponse.body.id),
+      );
+      expect(albumCleanupResponse.status).toBe(HttpStatus.OK);
     });
 
     it('should return BAD_REQUEST in case of invalid id', async () => {
