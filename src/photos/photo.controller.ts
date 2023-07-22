@@ -18,7 +18,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
-  ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -32,13 +31,8 @@ import { PhotoService } from './photo.service';
 import { imageFileFilter } from './multer/imagePhotoFilter';
 import { storage } from './multer/multerStorage';
 import { PhotoEntity } from './entity/photo.entity';
-import { UploadResponseEntity } from './entity/upload.response.entity';
-import { FileUploadDto } from './dto/file.dto';
-import { UPLOAD_PATH } from '../common/constants';
 import { ExceptionMessages } from '../common/messages';
 import { PathValidationPipe } from '../common/validation/pipes/PathValidationPipe';
-import { join } from 'path';
-import { getFileName } from '../common/utils/upload.utils';
 import { NotEmptyPayloadPipe } from '../common/validation/pipes/NotEmptyPayloadPipe';
 
 @ApiTags('photos')
@@ -74,50 +68,62 @@ export class PhotoController {
     return photo;
   }
 
-  @ApiOkResponse({ type: PhotoEntity })
+  @ApiCreatedResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()
-  @Post()
-  async create(@Body(new ValidationPipe({ transform: true })) body: CreatePhotoDto) {
-    const newPhoto = await this.photoService.create(body);
-
-    return newPhoto;
-  }
-
-  @ApiCreatedResponse({ type: UploadResponseEntity })
-  @ApiBadRequestResponse()
-  @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
   @ApiUnprocessableEntityResponse()
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'file with format *.jpg, *.png, *.gif',
-    type: FileUploadDto,
-  })
-  @Post(':id/upload')
   @UseInterceptors(
     FileInterceptor('file', {
       fileFilter: imageFileFilter,
       storage: storage,
     }),
   )
-  async uploadFile(
-    @Param('id', ParseIntPipe) id: number,
+  @Post()
+  async create(
+    @Body(new ValidationPipe({ transform: true })) body: CreatePhotoDto,
     @UploadedFile(new ParseFilePipe({ fileIsRequired: true }))
     file: Express.Multer.File,
   ) {
-    const photo = await this.photoService.findById(id);
-
-    if (!photo) {
-      this.photoService.deleteFileByPath(join(UPLOAD_PATH, getFileName(file.originalname, id)));
-      throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
-    }
-
-    const updatedPhoto = await this.photoService.upload(id, photo, file);
-
-    return {
-      data: updatedPhoto,
-      url: `${UPLOAD_PATH}/${updatedPhoto.path}`,
-    };
+    const newPhoto = await this.photoService.create(body);
+    const updatedPhoto = await this.photoService.upload(newPhoto.id, newPhoto, file);
+    return updatedPhoto;
   }
+
+  // @ApiCreatedResponse({ type: UploadResponseEntity })
+  // @ApiBadRequestResponse()
+  // @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
+  // @ApiUnprocessableEntityResponse()
+  // @ApiConsumes('multipart/form-data')
+  // @ApiBody({
+  //   description: 'file with format *.jpg, *.png, *.gif',
+  //   type: FileUploadDto,
+  // })
+  // @Post(':id/upload')
+  // @UseInterceptors(
+  //   FileInterceptor('file', {
+  //     fileFilter: imageFileFilter,
+  //     storage: storage,
+  //   }),
+  // )
+  // async uploadFile(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @UploadedFile(new ParseFilePipe({ fileIsRequired: true }))
+  //   file: Express.Multer.File,
+  // ) {
+  //   const photo = await this.photoService.findById(id);
+
+  // if (!photo) {
+  //   this.photoService.deleteFileByPath(join(UPLOAD_PATH, getFileName(file.originalname, id)));
+  //   throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
+  // }
+
+  //   const updatedPhoto = await this.photoService.upload(id, photo, file);
+
+  //   return {
+  //     data: updatedPhoto,
+  //     url: `${UPLOAD_PATH}/${updatedPhoto.path}`,
+  //   };
+  // }
 
   @ApiOkResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()

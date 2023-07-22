@@ -27,6 +27,9 @@ export class CreatePhotoDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiProperty({ type: 'string', format: 'binary', required: true })
+  file: any;
 }
 
 export class UpdatePhotoDto {

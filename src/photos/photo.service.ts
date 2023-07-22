@@ -3,7 +3,6 @@ import { Photo, Prisma } from '@prisma/client';
 import { join } from 'path';
 import { PHOTOS_PER_PAGE_DEFAULT, START_PAGE, UPLOAD_PATH } from '../common/constants';
 import { deleteFile } from '../common/utils/fs.utils';
-import { getFileName } from '../common/utils/upload.utils';
 import { PhotoPrismaRepositoty } from '../repositories/photo.prisma.repository';
 import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
 
@@ -57,9 +56,7 @@ export class PhotoService {
   }
 
   async upload(id: number, oldPhoto: Photo, file: Express.Multer.File) {
-    const fileName = getFileName(file.originalname, id);
-
-    const updatedPhoto = await this.photos.update(id, { path: fileName }, oldPhoto);
+    const updatedPhoto = await this.photos.update(id, { path: file.filename }, oldPhoto);
     return updatedPhoto;
   }
 }
