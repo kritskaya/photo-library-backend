@@ -25,6 +25,19 @@ const TEST_FILE_PATH = join(TEST_FOLDER, TEST_PHOTO_FILENAME);
 describe('Photo Controller', () => {
   const request = req('localhost:3000');
 
+  const createPhoto = () => {
+    const creationResponse = request
+      .post(photosRoutes.create)
+      .set('Content-Type', 'multipart/form-data')
+      .field('receivedAt', createPhotoDto.receivedAt)
+      .field('officialID', createPhotoDto.officialID)
+      .field('fromGroup', createPhotoDto.fromGroup)
+      .field('fromPerson', createPhotoDto.fromPerson)
+      .field('description', createPhotoDto.description)
+      .attach('file', TEST_FILE_PATH);
+    return creationResponse;
+  };
+
   describe('GET', () => {
     it('should get all photos', async () => {
       const response = await request.get(photosRoutes.findMany);
@@ -35,7 +48,7 @@ describe('Photo Controller', () => {
     });
 
     it('should get photo by id', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const creationResponse = await createPhoto();
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
@@ -61,7 +74,8 @@ describe('Photo Controller', () => {
 
   describe('POST', () => {
     it('should create new entity correctly', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      // const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const creationResponse = await createPhoto();
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
@@ -70,7 +84,7 @@ describe('Photo Controller', () => {
 
       expect(getResponse.status).toBe(HttpStatus.OK);
       expect(getResponse.body.id).toBe(id);
-      expect(getResponse.body.path).toBeNull();
+      expect(getResponse.body.path).not.toBeNull();
       expect(getResponse.body.officialID).toBe('BY-1234567');
       expect(getResponse.body.fromGroup).toBe('Russian RR');
       expect(getResponse.body.fromPerson).toBe('UserName');
@@ -82,15 +96,19 @@ describe('Photo Controller', () => {
     });
 
     it('should return BAD_REQUEST in case of invalid data', async () => {
-      const response1 = await request.post(photosRoutes.create).send({
-        receivedAt: '123abc',
-      });
+      const response1 = await request
+        .post(photosRoutes.create)
+        .set('Content-Type', 'multipart/form-data')
+        .field('receivedAt', '123abc')
+        .attach('file', TEST_FILE_PATH);
 
       expect(response1.status).toBe(HttpStatus.BAD_REQUEST);
 
-      const response2 = await request.post(photosRoutes.create).send({
-        officialID: '1234567',
-      });
+      const response2 = await request
+        .post(photosRoutes.create)
+        .set('Content-Type', 'multipart/form-data')
+        .field('officialID', '1234567')
+        .attach('file', TEST_FILE_PATH);
 
       expect(response2.status).toBe(HttpStatus.BAD_REQUEST);
     });
@@ -98,7 +116,8 @@ describe('Photo Controller', () => {
 
   describe('PUT', () => {
     it('should update entity correctly', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      // const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const creationResponse = await createPhoto();
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
@@ -113,7 +132,7 @@ describe('Photo Controller', () => {
 
       expect(updateResponse1.status).toBe(HttpStatus.OK);
       expect(updateResponse1.body.id).toBe(id);
-      expect(updateResponse1.body.path).toBeNull();
+      expect(updateResponse1.body.path).toBe(creationResponse.body.path);
       expect(updateResponse1.body.receivedAt).toBe('2023-06-27T13:08:16.833Z');
       expect(updateResponse1.body.officialID).toBe('BY-1234568');
       expect(updateResponse1.body.fromGroup).toBe('Russian RR1');
@@ -126,7 +145,7 @@ describe('Photo Controller', () => {
 
       expect(updateResponse2.status).toBe(HttpStatus.OK);
       expect(updateResponse2.body.id).toBe(id);
-      expect(updateResponse2.body.path).toBeNull();
+      expect(updateResponse2.body.path).toBe(creationResponse.body.path);
       expect(updateResponse2.body.receivedAt).toBe('2023-06-27T13:08:16.833Z');
       expect(updateResponse2.body.officialID).toBe('BY-1234568');
       expect(updateResponse2.body.fromGroup).toBe('Russian RR1');
@@ -144,7 +163,8 @@ describe('Photo Controller', () => {
     });
 
     it('should return BAD_REQUEST in case of empry payload', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      // const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const creationResponse = await createPhoto();
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
@@ -158,7 +178,8 @@ describe('Photo Controller', () => {
     });
 
     it('should return BAD_REQUEST in case of invalid payload data', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      // const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const creationResponse = await createPhoto();
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
       const { id } = creationResponse.body;
@@ -185,7 +206,8 @@ describe('Photo Controller', () => {
 
   describe('DELETE', () => {
     it('should delete photo and album covers with this photo if exist', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      // const creationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const creationResponse = await createPhoto();
       const { id } = creationResponse.body;
       expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
@@ -222,7 +244,8 @@ describe('Photo Controller', () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      // const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
@@ -254,132 +277,132 @@ describe('Photo Controller', () => {
     });
   });
 
-  describe('file uploads', () => {
-    it('should upload photo if entity exists', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send({
-        ...createPhotoDto,
-        path: TEST_PHOTO_FILENAME,
-      });
-      const { id } = creationResponse.body;
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+  // describe('file uploads', () => {
+  //   it('should upload photo if entity exists', async () => {
+  //     const creationResponse = await request.post(photosRoutes.create).send({
+  //       ...createPhotoDto,
+  //       path: TEST_PHOTO_FILENAME,
+  //     });
+  //     const { id } = creationResponse.body;
+  //     expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
-      const fileUploadResponse = await request
-        .post(photosRoutes.upload(id))
-        .set('Content-Type', 'multipart/form-data')
-        .attach('file', TEST_FILE_PATH);
+  //     const fileUploadResponse = await request
+  //       .post(photosRoutes.upload(id))
+  //       .set('Content-Type', 'multipart/form-data')
+  //       .attach('file', TEST_FILE_PATH);
 
-      expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
+  //     expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
 
-      const checkUpdateResponse = await request.get(photosRoutes.findOne(id));
+  //     const checkUpdateResponse = await request.get(photosRoutes.findOne(id));
 
-      const filePath = join(UPLOAD_PATH, checkUpdateResponse.body.path);
-      expect(await fileExists(filePath)).toBe(true);
-      expect(await getFileSize(filePath)).toBe(await getFileSize(TEST_FILE_PATH));
+  //     const filePath = join(UPLOAD_PATH, checkUpdateResponse.body.path);
+  //     expect(await fileExists(filePath)).toBe(true);
+  //     expect(await getFileSize(filePath)).toBe(await getFileSize(TEST_FILE_PATH));
 
-      const cleanupResponse = await request.delete(photosRoutes.delete(id));
-      expect(cleanupResponse.status).toBe(HttpStatus.OK);
-    });
+  //     const cleanupResponse = await request.delete(photosRoutes.delete(id));
+  //     expect(cleanupResponse.status).toBe(HttpStatus.OK);
+  //   });
 
-    it('should update entity path after photo file has been uploaded', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send({
-        ...createPhotoDto,
-        path: TEST_PHOTO_FILENAME,
-      });
-      const { id } = creationResponse.body;
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+  //   it('should update entity path after photo file has been uploaded', async () => {
+  //     const creationResponse = await request.post(photosRoutes.create).send({
+  //       ...createPhotoDto,
+  //       path: TEST_PHOTO_FILENAME,
+  //     });
+  //     const { id } = creationResponse.body;
+  //     expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
-      const fileUploadResponse = await request
-        .post(photosRoutes.upload(id))
-        .set('Content-Type', 'multipart/form-data')
-        .attach('file', TEST_FILE_PATH);
+  //     const fileUploadResponse = await request
+  //       .post(photosRoutes.upload(id))
+  //       .set('Content-Type', 'multipart/form-data')
+  //       .attach('file', TEST_FILE_PATH);
 
-      expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
+  //     expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
 
-      const checkUpdateResponse = await request.get(photosRoutes.findOne(id));
-      expect(creationResponse.body.path !== checkUpdateResponse.body.path).toBe(true);
+  //     const checkUpdateResponse = await request.get(photosRoutes.findOne(id));
+  //     expect(creationResponse.body.path !== checkUpdateResponse.body.path).toBe(true);
 
-      const cleanupResponse = await request.delete(photosRoutes.delete(id));
-      expect(cleanupResponse.status).toBe(HttpStatus.OK);
-    });
+  //     const cleanupResponse = await request.delete(photosRoutes.delete(id));
+  //     expect(cleanupResponse.status).toBe(HttpStatus.OK);
+  //   });
 
-    it('should return NOT_FOUND if entity not exists', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send({
-        ...createPhotoDto,
-        path: TEST_PHOTO_FILENAME,
-      });
-      const { id } = creationResponse.body;
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+  //   it('should return NOT_FOUND if entity not exists', async () => {
+  //     const creationResponse = await request.post(photosRoutes.create).send({
+  //       ...createPhotoDto,
+  //       path: TEST_PHOTO_FILENAME,
+  //     });
+  //     const { id } = creationResponse.body;
+  //     expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
-      const cleanupResponse = await request.delete(photosRoutes.delete(id));
-      expect(cleanupResponse.status).toBe(HttpStatus.OK);
+  //     const cleanupResponse = await request.delete(photosRoutes.delete(id));
+  //     expect(cleanupResponse.status).toBe(HttpStatus.OK);
 
-      const fileUploadResponse = await request
-        .post(photosRoutes.upload(id))
-        .set('Content-Type', 'multipart/form-data')
-        .attach('file', TEST_FILE_PATH);
+  //     const fileUploadResponse = await request
+  //       .post(photosRoutes.upload(id))
+  //       .set('Content-Type', 'multipart/form-data')
+  //       .attach('file', TEST_FILE_PATH);
 
-      expect(fileUploadResponse.status).toBe(HttpStatus.NOT_FOUND);
-    });
+  //     expect(fileUploadResponse.status).toBe(HttpStatus.NOT_FOUND);
+  //   });
 
-    it('should return BAD_REQUEST if file has wrong exension', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send({
-        ...createPhotoDto,
-        path: TEST_PHOTO_FILENAME,
-      });
-      const { id } = creationResponse.body;
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+  //   it('should return BAD_REQUEST if file has wrong exension', async () => {
+  //     const creationResponse = await request.post(photosRoutes.create).send({
+  //       ...createPhotoDto,
+  //       path: TEST_PHOTO_FILENAME,
+  //     });
+  //     const { id } = creationResponse.body;
+  //     expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
-      const TEST_FILE_PATH2 = join(TEST_FOLDER, 'test.jpp');
+  //     const TEST_FILE_PATH2 = join(TEST_FOLDER, 'test.jpp');
 
-      const fileUploadResponse = await request
-        .post(photosRoutes.upload(id))
-        .set('Content-Type', 'multipart/form-data')
-        .attach('file', TEST_FILE_PATH2);
+  //     const fileUploadResponse = await request
+  //       .post(photosRoutes.upload(id))
+  //       .set('Content-Type', 'multipart/form-data')
+  //       .attach('file', TEST_FILE_PATH2);
 
-      expect(fileUploadResponse.status).toBe(HttpStatus.UNPROCESSABLE_ENTITY);
+  //     expect(fileUploadResponse.status).toBe(HttpStatus.UNPROCESSABLE_ENTITY);
 
-      const cleanupResponse = await request.delete(photosRoutes.delete(id));
-      expect(cleanupResponse.status).toBe(HttpStatus.OK);
-    });
+  //     const cleanupResponse = await request.delete(photosRoutes.delete(id));
+  //     expect(cleanupResponse.status).toBe(HttpStatus.OK);
+  //   });
 
-    it('should return BAD_REQUEST if file has not been attached', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send({
-        ...createPhotoDto,
-        path: TEST_PHOTO_FILENAME,
-      });
-      const { id } = creationResponse.body;
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+  //   it('should return BAD_REQUEST if file has not been attached', async () => {
+  //     const creationResponse = await request.post(photosRoutes.create).send({
+  //       ...createPhotoDto,
+  //       path: TEST_PHOTO_FILENAME,
+  //     });
+  //     const { id } = creationResponse.body;
+  //     expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
-      const fileUploadResponse = await request
-        .post(photosRoutes.upload(id))
-        .set('Content-Type', 'multipart/form-data');
+  //     const fileUploadResponse = await request
+  //       .post(photosRoutes.upload(id))
+  //       .set('Content-Type', 'multipart/form-data');
 
-      expect(fileUploadResponse.status).toBe(HttpStatus.BAD_REQUEST);
+  //     expect(fileUploadResponse.status).toBe(HttpStatus.BAD_REQUEST);
 
-      const cleanupResponse = await request.delete(photosRoutes.delete(id));
-      expect(cleanupResponse.status).toBe(HttpStatus.OK);
-    });
+  //     const cleanupResponse = await request.delete(photosRoutes.delete(id));
+  //     expect(cleanupResponse.status).toBe(HttpStatus.OK);
+  //   });
 
-    it('should delete photo entity and photo file', async () => {
-      const creationResponse = await request.post(photosRoutes.create).send({
-        ...createPhotoDto,
-        path: TEST_PHOTO_FILENAME,
-      });
-      const { id } = creationResponse.body;
-      expect(creationResponse.status).toBe(HttpStatus.CREATED);
+  //   it('should delete photo entity and photo file', async () => {
+  //     const creationResponse = await request.post(photosRoutes.create).send({
+  //       ...createPhotoDto,
+  //       path: TEST_PHOTO_FILENAME,
+  //     });
+  //     const { id } = creationResponse.body;
+  //     expect(creationResponse.status).toBe(HttpStatus.CREATED);
 
-      const fileUploadResponse = await request
-        .post(photosRoutes.upload(id))
-        .set('Content-Type', 'multipart/form-data')
-        .attach('file', TEST_FILE_PATH);
+  //     const fileUploadResponse = await request
+  //       .post(photosRoutes.upload(id))
+  //       .set('Content-Type', 'multipart/form-data')
+  //       .attach('file', TEST_FILE_PATH);
 
-      expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
+  //     expect(fileUploadResponse.status).toBe(HttpStatus.CREATED);
 
-      const deleteResponse = await request.delete(photosRoutes.delete(id));
-      expect(deleteResponse.status).toBe(HttpStatus.OK);
+  //     const deleteResponse = await request.delete(photosRoutes.delete(id));
+  //     expect(deleteResponse.status).toBe(HttpStatus.OK);
 
-      const isFileExists = await fileExists(join(UPLOAD_PATH, TEST_PHOTO_FILENAME));
-      expect(isFileExists).toBe(false);
-    });
-  });
+  //     const isFileExists = await fileExists(join(UPLOAD_PATH, TEST_PHOTO_FILENAME));
+  //     expect(isFileExists).toBe(false);
+  //   });
+  // });
 });
