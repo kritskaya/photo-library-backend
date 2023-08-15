@@ -4,6 +4,7 @@ import { join } from 'path';
 import * as req from 'supertest';
 import { ExceptionMessages } from '../src/common/messages';
 import { albumRoutes, collectionRoutes, locationRoutes, photosRoutes } from './endpoints';
+import { createPhotoDto, request, TEST_FILE_PATH } from './testUtils';
 
 const createAlbumDto = {
   name: 'Album Name',
@@ -13,23 +14,23 @@ const createCollectionDto = {
   name: 'Collection Name',
 };
 
-const createPhotoDto = {
-  receivedAt: '2023-06-26T13:08:16.833Z',
-  officialID: 'BY-1234567',
-  fromGroup: 'Russian RR',
-  fromPerson: 'UserName',
-  description: 'photo description',
-};
+// const createPhotoDto = {
+//   receivedAt: '2023-06-26T13:08:16.833Z',
+//   officialID: 'BY-1234567',
+//   fromGroup: 'Russian RR',
+//   fromPerson: 'UserName',
+//   description: 'photo description',
+// };
 
-const TEST_PHOTO_FILENAME = 'test.jpg';
-const TEST_FOLDER = 'test';
-const TEST_FILE_PATH = join(TEST_FOLDER, TEST_PHOTO_FILENAME);
+// const TEST_PHOTO_FILENAME = 'test.jpg';
+// const TEST_FOLDER = 'test';
+// const TEST_FILE_PATH = join(TEST_FOLDER, TEST_PHOTO_FILENAME);
 
 describe('Album Controller', () => {
-  dotenv.config();
-  const port = process.env.PORT || 3000;
+  // dotenv.config();
+  // const port = process.env.PORT || 3000;
 
-  const request = req(`localhost:${port}`);
+  // const request = req(`localhost:${port}`);
 
   const createPhoto = () => {
     const creationResponse = request
@@ -87,7 +88,6 @@ describe('Album Controller', () => {
         .send(createCollectionDto);
       expect(collectionCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      // const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
       const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 

@@ -1,43 +1,23 @@
 import { HttpStatus } from '@nestjs/common';
 import { join } from 'path';
-import * as req from 'supertest';
 import { UPLOAD_PATH } from '../src/common/constants';
 import { ExceptionMessages } from '../src/common/messages';
 import { fileExists, getFileSize } from '../src/common/utils/fs.utils';
 import { albumRoutes, locationRoutes, photosRoutes } from './endpoints';
-
-const createPhotoDto = {
-  receivedAt: '2023-06-26T13:08:16.833Z',
-  officialID: 'BY-1234567',
-  fromGroup: 'Russian RR',
-  fromPerson: 'UserName',
-  description: 'photo description',
-};
+import {
+  createPhoto,
+  createPhotoDto,
+  request,
+  TEST_FILE_PATH,
+  TEST_FOLDER,
+  TEST_PHOTO_FILENAME,
+} from './testUtils';
 
 const createAlbumDto = {
   name: 'Album Name',
 };
 
-const TEST_PHOTO_FILENAME = 'test.jpg';
-const TEST_FOLDER = 'test';
-const TEST_FILE_PATH = join(TEST_FOLDER, TEST_PHOTO_FILENAME);
-
 describe('Photo Controller', () => {
-  const request = req('localhost:3000');
-
-  const createPhoto = () => {
-    const creationResponse = request
-      .post(photosRoutes.create)
-      .set('Content-Type', 'multipart/form-data')
-      .field('receivedAt', createPhotoDto.receivedAt)
-      .field('officialID', createPhotoDto.officialID)
-      .field('fromGroup', createPhotoDto.fromGroup)
-      .field('fromPerson', createPhotoDto.fromPerson)
-      .field('description', createPhotoDto.description)
-      .attach('file', TEST_FILE_PATH);
-    return creationResponse;
-  };
-
   describe('GET', () => {
     it('should get all photos', async () => {
       const response = await request.get(photosRoutes.findMany);

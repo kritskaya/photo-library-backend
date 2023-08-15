@@ -3,34 +3,22 @@ import * as dotenv from 'dotenv';
 import * as req from 'supertest';
 import { ExceptionMessages } from '../src/common/messages';
 import { albumRoutes, locationRoutes, photosRoutes } from './endpoints';
+import { createPhoto, createPhotoDto, request } from './testUtils';
 
 const createAlbumDto = {
   name: 'Album Name',
 };
 
-const createPhotoDto = {
-  receivedAt: '2023-06-26T13:08:16.833Z',
-  officialID: 'BY-1234567',
-  fromGroup: 'Russian RR',
-  fromPerson: 'UserName',
-  description: 'photo description',
-};
-
 describe('Location Controller', () => {
-  dotenv.config();
-  const port = process.env.PORT || 3000;
-
-  const request = req(`localhost:${port}`);
-
   describe('GET', () => {
     it('should return all locations by Album', async () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse1 = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse1 = await createPhoto();
       expect(photoCreationResponse1.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse2 = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse2 = await createPhoto();
       expect(photoCreationResponse2.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse1 = await request.post(locationRoutes.create).send({
@@ -81,7 +69,7 @@ describe('Location Controller', () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
@@ -120,7 +108,7 @@ describe('Location Controller', () => {
       const albumCreationResponse2 = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse2.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse1 = await request.post(locationRoutes.create).send({
@@ -173,7 +161,7 @@ describe('Location Controller', () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
@@ -204,7 +192,7 @@ describe('Location Controller', () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
@@ -219,13 +207,18 @@ describe('Location Controller', () => {
       });
       expect(locationCreationCopyResponse.status).toBe(HttpStatus.BAD_REQUEST);
       expect(locationCreationCopyResponse.body.message).toBe(ExceptionMessages.LOCATION_EXISTS);
+
+      const photoCleanupResponse = await request.delete(
+        photosRoutes.delete(photoCreationResponse.body.id),
+      );
+      expect(photoCleanupResponse.status).toBe(HttpStatus.OK);
     });
 
     it('should return BAD_REQUEST in case of wrong album id', async () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const albumDeleteResponse = await request.delete(
@@ -255,7 +248,7 @@ describe('Location Controller', () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const photoDeleteResponse = await request.delete(
@@ -287,7 +280,7 @@ describe('Location Controller', () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
@@ -322,7 +315,7 @@ describe('Location Controller', () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
@@ -356,7 +349,7 @@ describe('Location Controller', () => {
       const albumCreationResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(albumCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
