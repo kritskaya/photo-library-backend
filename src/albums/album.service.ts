@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Album, Prisma } from '@prisma/client';
-import { ALBUMS_PER_PAGE_DEFAULT, START_PAGE } from '../common/constants';
+import { join } from 'path';
+import { ALBUMS_PER_PAGE_DEFAULT, START_PAGE, UPLOAD_PATH } from '../common/constants';
+import { deleteFile } from '../common/utils/fs.utils';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAlbumDto, UpdateAlbumDto } from './dto/album.dto';
 
@@ -59,8 +61,6 @@ export class AlbumService {
   }
 
   async delete(id: number): Promise<Album> {
-    const deletedPhotoIds: number[] = [];
-
     // all photos from deleted album
     const deletedAlbumPhotoIds = (
       await this.prisma.location.findMany({
@@ -85,11 +85,23 @@ export class AlbumService {
     ).map((location) => location.photoId);
 
     // photos that located only in the deleted albums
+    const deletedPhotoIds: number[] = [];
     deletedAlbumPhotoIds.forEach((photoId) => {
       if (!deletedAlbumManyLocationsPhotoIds.includes(photoId)) {
         deletedPhotoIds.push(photoId);
       }
     });
+
+    // file paths to delete
+    const pathsToDelete = (
+      await this.prisma.photo.findMany({
+        where: {
+          id: {
+            in: deletedPhotoIds,
+          },
+        },
+      })
+    ).map((photos) => photos.path);
 
     const [_covers, _deletedLocations, _deletedPhoto, deletedAlbum] =
       await this.prisma.$transaction([
@@ -128,6 +140,11 @@ export class AlbumService {
           },
         }),
       ]);
+
+    for (const path of pathsToDelete) {
+      const fullPath = join(UPLOAD_PATH, path);
+      deleteFile(fullPath);
+    }
 
     return deletedAlbum;
   }

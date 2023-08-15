@@ -1,5 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import * as dotenv from 'dotenv';
+import { join } from 'path';
 import * as req from 'supertest';
 import { ExceptionMessages } from '../src/common/messages';
 import { albumRoutes, collectionRoutes, locationRoutes, photosRoutes } from './endpoints';
@@ -20,11 +21,28 @@ const createPhotoDto = {
   description: 'photo description',
 };
 
+const TEST_PHOTO_FILENAME = 'test.jpg';
+const TEST_FOLDER = 'test';
+const TEST_FILE_PATH = join(TEST_FOLDER, TEST_PHOTO_FILENAME);
+
 describe('Album Controller', () => {
   dotenv.config();
   const port = process.env.PORT || 3000;
 
   const request = req(`localhost:${port}`);
+
+  const createPhoto = () => {
+    const creationResponse = request
+      .post(photosRoutes.create)
+      .set('Content-Type', 'multipart/form-data')
+      .field('receivedAt', createPhotoDto.receivedAt)
+      .field('officialID', createPhotoDto.officialID)
+      .field('fromGroup', createPhotoDto.fromGroup)
+      .field('fromPerson', createPhotoDto.fromPerson)
+      .field('description', createPhotoDto.description)
+      .attach('file', TEST_FILE_PATH);
+    return creationResponse;
+  };
 
   describe('GET', () => {
     it('should return all albums', async () => {
@@ -69,7 +87,8 @@ describe('Album Controller', () => {
         .send(createCollectionDto);
       expect(collectionCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      // const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const albumCreationResponse = await request.post(albumRoutes.create).send({
@@ -146,7 +165,7 @@ describe('Album Controller', () => {
     });
 
     it('should return BAD_REQUEST in case of wrong cover id', async () => {
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const photoDeleteResponse = await request.delete(
@@ -181,7 +200,7 @@ describe('Album Controller', () => {
         .send(createCollectionDto);
       expect(collectionCreationResponse.status).toBe(HttpStatus.CREATED);
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const albumUpdateResponse = await request.put(albumRoutes.update(id)).send({
@@ -262,7 +281,7 @@ describe('Album Controller', () => {
 
       const { id } = albumCreationResponse.body;
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const photoDeleteResponse = await request.delete(
@@ -325,7 +344,7 @@ describe('Album Controller', () => {
 
       const { id } = albumCreationResponse.body;
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
@@ -357,7 +376,7 @@ describe('Album Controller', () => {
 
       const { id: id2 } = albumCreationResponse2.body;
 
-      const photoCreationResponse = await request.post(photosRoutes.create).send(createPhotoDto);
+      const photoCreationResponse = await createPhoto();
       expect(photoCreationResponse.status).toBe(HttpStatus.CREATED);
 
       const locationCreationResponse = await request.post(locationRoutes.create).send({
