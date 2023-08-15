@@ -41,10 +41,10 @@ export class PhotoPrismaRepositoty {
     });
   }
 
-  async update(id: number, updatePhotoDto: UpdatePhotoDto, oldPhoto: Photo): Promise<Photo> {
+  async update(updatePhotoDto: UpdatePhotoDto, oldPhoto: Photo): Promise<Photo> {
     return this.prisma.photo.update({
       where: {
-        id,
+        id: oldPhoto.id,
       },
       data: {
         ...updatePhotoDto,

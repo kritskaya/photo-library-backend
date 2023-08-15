@@ -30,8 +30,8 @@ export class PhotoService {
     return this.photos.create(createPhotoDto);
   }
 
-  async update(id: number, updatePhotoDto: UpdatePhotoDto, oldPhoto: Photo): Promise<Photo> {
-    return this.photos.update(id, updatePhotoDto, oldPhoto);
+  async update(updatePhotoDto: UpdatePhotoDto, oldPhoto: Photo): Promise<Photo> {
+    return this.photos.update(updatePhotoDto, oldPhoto);
   }
 
   async delete(id: number): Promise<Photo> {
@@ -55,8 +55,8 @@ export class PhotoService {
     return this.photos.count(condition);
   }
 
-  async upload(id: number, oldPhoto: Photo, file: Express.Multer.File) {
-    const updatedPhoto = await this.photos.update(id, { path: file.filename }, oldPhoto);
+  async upload(newPhoto: Photo, file: Express.Multer.File) {
+    const updatedPhoto = await this.photos.update({ path: file.filename }, newPhoto);
     return updatedPhoto;
   }
 }

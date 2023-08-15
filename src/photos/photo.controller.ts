@@ -85,7 +85,7 @@ export class PhotoController {
     file: Express.Multer.File,
   ) {
     const newPhoto = await this.photoService.create(body);
-    const updatedPhoto = await this.photoService.upload(newPhoto.id, newPhoto, file);
+    const updatedPhoto = await this.photoService.upload(newPhoto, file);
     return updatedPhoto;
   }
 
@@ -139,7 +139,7 @@ export class PhotoController {
       throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 
-    const updatedPhoto = this.photoService.update(id, body, photo);
+    const updatedPhoto = this.photoService.update(body, photo);
 
     return updatedPhoto;
   }
