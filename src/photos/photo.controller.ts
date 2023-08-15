@@ -11,6 +11,7 @@ import {
   Put,
   Query,
   UploadedFile,
+  UseFilters,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
@@ -34,6 +35,7 @@ import { PhotoEntity } from './entity/photo.entity';
 import { ExceptionMessages } from '../common/messages';
 import { PathValidationPipe } from '../common/validation/pipes/PathValidationPipe';
 import { NotEmptyPayloadPipe } from '../common/validation/pipes/NotEmptyPayloadPipe';
+import { DeleteFileOnErrorFilter } from '../common/filters/DeleteFileOnErrorFilter';
 
 @ApiTags('photos')
 @Controller('photos')
@@ -78,6 +80,7 @@ export class PhotoController {
       storage: storage,
     }),
   )
+  @UseFilters(new DeleteFileOnErrorFilter())
   @Post()
   async create(
     @Body(new ValidationPipe({ transform: true })) body: CreatePhotoDto,
