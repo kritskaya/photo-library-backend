@@ -1,7 +1,7 @@
-import { Injectable } from "@nestjs/common";
-import { Collection } from "@prisma/client";
-import { CreateCollectionDto, UpdateCollectionDto } from "../collections/dto/collection.dto";
-import { PrismaService } from "../prisma/prisma.service";
+import { Injectable } from '@nestjs/common';
+import { Collection } from '@prisma/client';
+import { CreateCollectionDto, UpdateCollectionDto } from '../collections/dto/collection.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CollectionPrismaRepository {
@@ -38,7 +38,7 @@ export class CollectionPrismaRepository {
     });
   }
 
-  async delete(id: number): Promise<Collection> {
+  async delete(id: number): Promise<{ deletedCollection: Collection, pathsToDelete: string[]}> {
     const deletedAlbumsIds = (
       await this.prisma.album.findMany({
         where: {
@@ -79,6 +79,17 @@ export class CollectionPrismaRepository {
         deletedPhotoIds.push(photoId);
       }
     });
+
+    // file paths to delete
+    const pathsToDelete = (
+      await this.prisma.photo.findMany({
+        where: {
+          id: {
+            in: deletedPhotoIds,
+          },
+        },
+      })
+    ).map((photos) => photos.path);
 
     const [_covers, _deletedLocations, _deletedPhoto, _deletedAlbums, deletedCollection] =
       await this.prisma.$transaction([
@@ -129,6 +140,9 @@ export class CollectionPrismaRepository {
         }),
       ]);
 
-    return deletedCollection;
+    return {
+      deletedCollection: deletedCollection,
+      pathsToDelete: pathsToDelete
+    }
   }
 }

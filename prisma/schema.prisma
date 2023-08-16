@@ -36,7 +36,7 @@ model Album {
 
 model Photo {
   id Int @id @default(autoincrement())
-  path String
+  path String?
   uploadedAt DateTime @default(now())
   receivedAt DateTime?
   officialID String?

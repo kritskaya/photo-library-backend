@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Collection } from '@prisma/client';
+import { join } from 'path';
+import { UPLOAD_PATH } from '../common/constants';
+import { deleteFile } from '../common/utils/fs.utils';
 import { CollectionPrismaRepository } from '../repositories/collection.prisma.repository';
 import { CreateCollectionDto, UpdateCollectionDto } from './dto/collection.dto';
 
@@ -8,132 +11,29 @@ export class CollectionService {
   constructor(private collectionRepository: CollectionPrismaRepository) {}
 
   async findAll(): Promise<Collection[]> {
-    // return this.prisma.collection.findMany();
     return this.collectionRepository.findAll();
   }
 
   async findById(id: number): Promise<Collection> {
-    // return this.prisma.collection.findUnique({
-    //   where: {
-    //     id,
-    //   },
-    // });
     return this.collectionRepository.findById(id);
   }
 
   async create(createCollectionDto: CreateCollectionDto): Promise<Collection> {
-    // return this.prisma.collection.create({
-    //   data: {
-    //     name: createCollectionDto.name,
-    //   },
-    // });
     return this.collectionRepository.create(createCollectionDto);
   }
 
   async update(id: number, updateCollectionDto: UpdateCollectionDto): Promise<Collection> {
-    // return this.prisma.collection.update({
-    //   where: {
-    //     id,
-    //   },
-    //   data: {
-    //     name: updateCollectionDto.name,
-    //   },
-    // });
     return this.collectionRepository.update(id, updateCollectionDto);
   }
 
   async delete(id: number): Promise<Collection> {
-    // const deletedAlbumsIds = (
-    //   await this.prisma.album.findMany({
-    //     where: {
-    //       collectionId: id,
-    //     },
-    //   })
-    // ).map((album) => album.id);
+    const { deletedCollection, pathsToDelete } = await this.collectionRepository.delete(id);
 
-    // // all photos from deleted albums
-    // const deletedAlbumsPhotoIds = (
-    //   await this.prisma.location.findMany({
-    //     where: {
-    //       albumId: {
-    //         in: deletedAlbumsIds,
-    //       },
-    //     },
-    //   })
-    // ).map((location) => location.photoId);
+    for (const path of pathsToDelete) {
+      const fullPath = join(UPLOAD_PATH, path);
+      deleteFile(fullPath);
+    }
 
-    // // all photos from deleted albums that related to another not deleted albums
-    // const deletedAlbumsManyLocationsPhotoIds = (
-    //   await this.prisma.location.findMany({
-    //     where: {
-    //       albumId: {
-    //         notIn: deletedAlbumsIds,
-    //       },
-    //       photoId: {
-    //         in: deletedAlbumsPhotoIds,
-    //       },
-    //     },
-    //   })
-    // ).map((location) => location.photoId);
-
-    // // photos that located only in the deleted albums
-    // const deletedPhotoIds: number[] = [];
-    // deletedAlbumsPhotoIds.forEach((photoId) => {
-    //   if (!deletedAlbumsManyLocationsPhotoIds.includes(photoId)) {
-    //     deletedPhotoIds.push(photoId);
-    //   }
-    // });
-
-    // const [_covers, _deletedLocations, _deletedPhoto, _deletedAlbums, deletedCollection] =
-    //   await this.prisma.$transaction([
-    //     // update album covers
-    //     this.prisma.album.updateMany({
-    //       data: {
-    //         coverId: null,
-    //       },
-    //       where: {
-    //         coverId: {
-    //           in: deletedPhotoIds,
-    //         },
-    //       },
-    //     }),
-
-    //     // delete locations
-    //     this.prisma.location.deleteMany({
-    //       where: {
-    //         albumId: {
-    //           in: deletedAlbumsIds,
-    //         },
-    //       },
-    //     }),
-
-    //     //delete photos
-    //     this.prisma.photo.deleteMany({
-    //       where: {
-    //         id: {
-    //           in: deletedPhotoIds,
-    //         },
-    //       },
-    //     }),
-
-    //     //delete albums
-    //     this.prisma.album.deleteMany({
-    //       where: {
-    //         id: {
-    //           in: deletedAlbumsIds,
-    //         },
-    //       },
-    //     }),
-
-    //     //delete collection
-    //     this.prisma.collection.delete({
-    //       where: {
-    //         id,
-    //       },
-    //     }),
-    //   ]);
-
-    // return deletedCollection;
-    return this.collectionRepository.delete(id);
+    return deletedCollection;
   }
 }

@@ -92,42 +92,6 @@ export class PhotoController {
     return updatedPhoto;
   }
 
-  // @ApiCreatedResponse({ type: UploadResponseEntity })
-  // @ApiBadRequestResponse()
-  // @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
-  // @ApiUnprocessableEntityResponse()
-  // @ApiConsumes('multipart/form-data')
-  // @ApiBody({
-  //   description: 'file with format *.jpg, *.png, *.gif',
-  //   type: FileUploadDto,
-  // })
-  // @Post(':id/upload')
-  // @UseInterceptors(
-  //   FileInterceptor('file', {
-  //     fileFilter: imageFileFilter,
-  //     storage: storage,
-  //   }),
-  // )
-  // async uploadFile(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @UploadedFile(new ParseFilePipe({ fileIsRequired: true }))
-  //   file: Express.Multer.File,
-  // ) {
-  //   const photo = await this.photoService.findById(id);
-
-  // if (!photo) {
-  //   this.photoService.deleteFileByPath(join(UPLOAD_PATH, getFileName(file.originalname, id)));
-  //   throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
-  // }
-
-  //   const updatedPhoto = await this.photoService.upload(id, photo, file);
-
-  //   return {
-  //     data: updatedPhoto,
-  //     url: `${UPLOAD_PATH}/${updatedPhoto.path}`,
-  //   };
-  // }
-
   @ApiOkResponse({ type: PhotoEntity })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse({ description: ExceptionMessages.PHOTO_NOT_FOUND })
