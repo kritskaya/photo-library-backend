@@ -8,10 +8,10 @@ import { CreatePhotoDto, UpdatePhotoDto } from './dto/photo.dto';
 
 @Injectable()
 export class PhotoService {
-  constructor(private photos: PhotoPrismaRepositoty) {}
+  constructor(private photoRepository: PhotoPrismaRepositoty) {}
 
   async findAll(): Promise<Photo[]> {
-    return this.photos.findAll();
+    return this.photoRepository.findAll();
   }
 
   async findMany(
@@ -19,23 +19,23 @@ export class PhotoService {
     page = START_PAGE,
     condition?: Prisma.PhotoWhereInput,
   ) {
-    return this.photos.findMany(perPage, page, condition);
+    return this.photoRepository.findMany(perPage, page, condition);
   }
 
   async findById(id: number): Promise<Photo> {
-    return this.photos.findById(id);
+    return this.photoRepository.findById(id);
   }
 
   async create(createPhotoDto: CreatePhotoDto): Promise<Photo> {
-    return this.photos.create(createPhotoDto);
+    return this.photoRepository.create(createPhotoDto);
   }
 
   async update(updatePhotoDto: UpdatePhotoDto, oldPhoto: Photo): Promise<Photo> {
-    return this.photos.update(updatePhotoDto, oldPhoto);
+    return this.photoRepository.update(updatePhotoDto, oldPhoto);
   }
 
   async delete(id: number): Promise<Photo> {
-    const deletedPhoto = await this.photos.delete(id);
+    const deletedPhoto = await this.photoRepository.delete(id);
 
     if (deletedPhoto && deletedPhoto.path) {
       const filePath = join(UPLOAD_PATH, deletedPhoto.path);
@@ -49,11 +49,11 @@ export class PhotoService {
   }
 
   async count(condition: Prisma.PhotoWhereInput): Promise<number> {
-    return this.photos.count(condition);
+    return this.photoRepository.count(condition);
   }
 
   async upload(newPhoto: Photo, file: Express.Multer.File) {
-    const updatedPhoto = await this.photos.update({ path: file.filename }, newPhoto);
+    const updatedPhoto = await this.photoRepository.update({ path: file.filename }, newPhoto);
     return updatedPhoto;
   }
 }
