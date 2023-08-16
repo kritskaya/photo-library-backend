@@ -1,9 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
-import * as dotenv from 'dotenv';
-import * as req from 'supertest';
 import { ExceptionMessages } from '../src/common/messages';
 import { albumRoutes, locationRoutes, photosRoutes } from './endpoints';
-import { createPhoto, createPhotoDto, request } from './testUtils';
+import { createPhoto, request } from './testUtils';
 
 const createAlbumDto = {
   name: 'Album Name',
