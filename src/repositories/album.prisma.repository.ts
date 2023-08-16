@@ -1,8 +1,8 @@
-import { Injectable } from "@nestjs/common";
-import { Album, Prisma } from "@prisma/client";
-import { CreateAlbumDto, UpdateAlbumDto } from "../albums/dto/album.dto";
-import { ALBUMS_PER_PAGE_DEFAULT, START_PAGE } from "../common/constants";
-import { PrismaService } from "../prisma/prisma.service";
+import { Injectable } from '@nestjs/common';
+import { Album, Prisma } from '@prisma/client';
+import { CreateAlbumDto, UpdateAlbumDto } from '../albums/dto/album.dto';
+import { ALBUMS_PER_PAGE_DEFAULT, START_PAGE } from '../common/constants';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AlbumPrismaRepository {
@@ -58,49 +58,9 @@ export class AlbumPrismaRepository {
     });
   }
 
-  async delete(id: number): Promise<{ deletedAlbum: Album, pathsToDelete: string[]}> {
-    // all photos from deleted album
-    const deletedAlbumPhotoIds = (
-      await this.prisma.location.findMany({
-        where: {
-          albumId: id,
-        },
-      })
-    ).map((location) => location.photoId);
-
-    // all photos from deleted album that related to another not deleted albums
-    const deletedAlbumManyLocationsPhotoIds = (
-      await this.prisma.location.findMany({
-        where: {
-          albumId: {
-            not: id,
-          },
-          photoId: {
-            in: deletedAlbumPhotoIds,
-          },
-        },
-      })
-    ).map((location) => location.photoId);
-
-    // photos that located only in the deleted albums
-    const deletedPhotoIds: number[] = [];
-    deletedAlbumPhotoIds.forEach((photoId) => {
-      if (!deletedAlbumManyLocationsPhotoIds.includes(photoId)) {
-        deletedPhotoIds.push(photoId);
-      }
-    });
-
-    // file paths to delete
-    const pathsToDelete = (
-      await this.prisma.photo.findMany({
-        where: {
-          id: {
-            in: deletedPhotoIds,
-          },
-        },
-      })
-    ).map((photos) => photos.path);
-
+  async delete(id: number): Promise<{ deletedAlbum: Album; pathsToDelete: string[] }> {
+    const { photosIdsToDelete, pathsToDelete } = await this.getPhotosFromDeletedAlbums([id]);
+    
     const [_covers, _deletedLocations, _deletedPhoto, deletedAlbum] =
       await this.prisma.$transaction([
         // update album covers
@@ -110,7 +70,7 @@ export class AlbumPrismaRepository {
           },
           where: {
             coverId: {
-              in: deletedPhotoIds,
+              in: photosIdsToDelete,
             },
           },
         }),
@@ -126,7 +86,7 @@ export class AlbumPrismaRepository {
         this.prisma.photo.deleteMany({
           where: {
             id: {
-              in: deletedPhotoIds,
+              in: photosIdsToDelete,
             },
           },
         }),
@@ -141,8 +101,58 @@ export class AlbumPrismaRepository {
 
     return {
       deletedAlbum: deletedAlbum,
-      pathsToDelete: pathsToDelete
-    }
+      pathsToDelete: pathsToDelete,
+    };
+  }
+
+  async getPhotosFromDeletedAlbums(deletedAlbumsIds: number[]) {
+    // all photos from deleted album
+    const deletedAlbumPhotoIds = (
+      await this.prisma.location.findMany({
+        where: {
+          albumId: {
+            in: deletedAlbumsIds,
+          },
+        },
+      })
+    ).map((location) => location.photoId);
+
+    // all photos from deleted album that related to another not deleted albums
+    const deletedAlbumManyLocationsPhotoIds = (
+      await this.prisma.location.findMany({
+        where: {
+          albumId: {
+            notIn: deletedAlbumsIds,
+          },
+          photoId: {
+            in: deletedAlbumPhotoIds,
+          },
+        },
+      })
+    ).map((location) => location.photoId);
+
+    // photos that located only in the deleted albums
+    const photosIdsToDelete: number[] = [];
+    deletedAlbumPhotoIds.forEach((photoId) => {
+      if (!deletedAlbumManyLocationsPhotoIds.includes(photoId)) {
+        photosIdsToDelete.push(photoId);
+      }
+    });
+
+    const pathsToDelete = (
+      await this.prisma.photo.findMany({
+        where: {
+          id: {
+            in: photosIdsToDelete,
+          },
+        },
+      })
+    ).map((photos) => photos.path);
+
+    return {
+      photosIdsToDelete: photosIdsToDelete,
+      pathsToDelete: pathsToDelete,
+    };
   }
 
   async count(condition: Prisma.AlbumWhereInput): Promise<number> {

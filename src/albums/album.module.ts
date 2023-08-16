@@ -9,6 +9,6 @@ import { AlbumService } from './album.service';
   imports: [forwardRef(() => CollectionModule), forwardRef(() => PhotoModule)],
   providers: [AlbumService, AlbumPrismaRepository],
   controllers: [AlbumController],
-  exports: [AlbumService]
+  exports: [AlbumService, AlbumPrismaRepository]
 })
 export class AlbumModule {}

@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { Collection } from '@prisma/client';
 import { CreateCollectionDto, UpdateCollectionDto } from '../collections/dto/collection.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { AlbumPrismaRepository } from './album.prisma.repository';
 
 @Injectable()
 export class CollectionPrismaRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private albumRepository: AlbumPrismaRepository) {}
 
   async findAll(): Promise<Collection[]> {
     return this.prisma.collection.findMany();
@@ -38,7 +39,7 @@ export class CollectionPrismaRepository {
     });
   }
 
-  async delete(id: number): Promise<{ deletedCollection: Collection, pathsToDelete: string[]}> {
+  async delete(id: number): Promise<{ deletedCollection: Collection; pathsToDelete: string[] }> {
     const deletedAlbumsIds = (
       await this.prisma.album.findMany({
         where: {
@@ -47,49 +48,52 @@ export class CollectionPrismaRepository {
       })
     ).map((album) => album.id);
 
-    // all photos from deleted albums
-    const deletedAlbumsPhotoIds = (
-      await this.prisma.location.findMany({
-        where: {
-          albumId: {
-            in: deletedAlbumsIds,
-          },
-        },
-      })
-    ).map((location) => location.photoId);
+    // // all photos from deleted albums
+    // const deletedAlbumsPhotoIds = (
+    //   await this.prisma.location.findMany({
+    //     where: {
+    //       albumId: {
+    //         in: deletedAlbumsIds,
+    //       },
+    //     },
+    //   })
+    // ).map((location) => location.photoId);
 
-    // all photos from deleted albums that related to another not deleted albums
-    const deletedAlbumsManyLocationsPhotoIds = (
-      await this.prisma.location.findMany({
-        where: {
-          albumId: {
-            notIn: deletedAlbumsIds,
-          },
-          photoId: {
-            in: deletedAlbumsPhotoIds,
-          },
-        },
-      })
-    ).map((location) => location.photoId);
+    // // all photos from deleted albums that related to another not deleted albums
+    // const deletedAlbumsManyLocationsPhotoIds = (
+    //   await this.prisma.location.findMany({
+    //     where: {
+    //       albumId: {
+    //         notIn: deletedAlbumsIds,
+    //       },
+    //       photoId: {
+    //         in: deletedAlbumsPhotoIds,
+    //       },
+    //     },
+    //   })
+    // ).map((location) => location.photoId);
 
-    // photos that located only in the deleted albums
-    const deletedPhotoIds: number[] = [];
-    deletedAlbumsPhotoIds.forEach((photoId) => {
-      if (!deletedAlbumsManyLocationsPhotoIds.includes(photoId)) {
-        deletedPhotoIds.push(photoId);
-      }
-    });
+    // // photos that located only in the deleted albums
+    // const deletedPhotoIds: number[] = [];
+    // deletedAlbumsPhotoIds.forEach((photoId) => {
+    //   if (!deletedAlbumsManyLocationsPhotoIds.includes(photoId)) {
+    //     deletedPhotoIds.push(photoId);
+    //   }
+    // });
 
-    // file paths to delete
-    const pathsToDelete = (
-      await this.prisma.photo.findMany({
-        where: {
-          id: {
-            in: deletedPhotoIds,
-          },
-        },
-      })
-    ).map((photos) => photos.path);
+    // // file paths to delete
+    // const pathsToDelete = (
+    //   await this.prisma.photo.findMany({
+    //     where: {
+    //       id: {
+    //         in: deletedPhotoIds,
+    //       },
+    //     },
+    //   })
+    // ).map((photos) => photos.path);
+
+    const { photosIdsToDelete, pathsToDelete } =
+      await this.albumRepository.getPhotosFromDeletedAlbums(deletedAlbumsIds);
 
     const [_covers, _deletedLocations, _deletedPhoto, _deletedAlbums, deletedCollection] =
       await this.prisma.$transaction([
@@ -100,7 +104,7 @@ export class CollectionPrismaRepository {
           },
           where: {
             coverId: {
-              in: deletedPhotoIds,
+              in: photosIdsToDelete,
             },
           },
         }),
@@ -118,7 +122,7 @@ export class CollectionPrismaRepository {
         this.prisma.photo.deleteMany({
           where: {
             id: {
-              in: deletedPhotoIds,
+              in: photosIdsToDelete,
             },
           },
         }),
@@ -142,7 +146,7 @@ export class CollectionPrismaRepository {
 
     return {
       deletedCollection: deletedCollection,
-      pathsToDelete: pathsToDelete
-    }
+      pathsToDelete: pathsToDelete,
+    };
   }
 }
