@@ -49,7 +49,6 @@ export class AlbumController {
       data: albums,
       totalCount: count,
     };
-    //return await this.albumService.findAll();
   }
 
   @ApiOkResponse({ type: AlbumEntity })

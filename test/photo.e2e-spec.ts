@@ -19,12 +19,39 @@ const createAlbumDto = {
 
 describe('Photo Controller', () => {
   describe('GET', () => {
-    it('should get all photos', async () => {
+    it('should get photos', async () => {
       const response = await request.get(photosRoutes.findMany);
 
       expect(response.status).toBe(HttpStatus.OK);
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body).toHaveProperty('totalCount');
+    });
+
+    it('should get photos from specified page with specified perPage value', async () => {
+      const response = await request.get(photosRoutes.findMany);
+      expect(response.status).toBe(HttpStatus.OK);
+
+      const { totalCount } = response.body;
+
+      const creationResponse1 = await request
+        .post(photosRoutes.create)
+        .set('Content-Type', 'multipart/form-data')
+        .field('officialID', 'US-1111111')
+        .attach('file', TEST_FILE_PATH);
+      expect(creationResponse1.status).toBe(HttpStatus.CREATED);
+
+      const creationResponse2 = await createPhoto();
+      expect(creationResponse2.status).toBe(HttpStatus.CREATED);
+
+      const perPageResponse = await request.get(`/photos?page=${totalCount}&perPage=1`);
+      expect(perPageResponse.status).toBe(HttpStatus.OK);
+      expect(perPageResponse.body.data).toHaveLength(1);
+      expect(perPageResponse.body.data[0].officialID).toBe('US-1111111');
+
+      const cleanupResponse1 = await request.delete(photosRoutes.delete(creationResponse1.body.id));
+      expect(cleanupResponse1.status).toBe(HttpStatus.OK);
+      const cleanupResponse2 = await request.delete(photosRoutes.delete(creationResponse2.body.id));
+      expect(cleanupResponse2.status).toBe(HttpStatus.OK);
     });
 
     it('should get photo by id', async () => {
