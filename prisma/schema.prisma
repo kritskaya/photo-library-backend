@@ -23,10 +23,10 @@ model Album {
   id   Int    @id @default(autoincrement())
   name String
 
-  cover   Photo? @relation(fields: [coverId], references: [id])
+  cover   Photo? @relation(fields: [coverId], references: [id], onDelete: SetNull)
   coverId Int?
 
-  collection Collection? @relation(fields: [collectionId], references: [id])
+  collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   collectionId Int?
 
   photos Location[]
@@ -35,17 +35,17 @@ model Album {
 }
 
 model Photo {
-  id Int @id @default(autoincrement())
-  path String?
-  uploadedAt DateTime @default(now())
-  receivedAt DateTime?
-  officialID String?
-  fromGroup String?
-  fromPerson String?
+  id          Int       @id @default(autoincrement())
+  path        String?
+  uploadedAt  DateTime  @default(now())
+  receivedAt  DateTime?
+  officialID  String?
+  fromGroup   String?
+  fromPerson  String?
   description String?
 
   albumCovers Album[]
-  locations Location[]
+  locations   Location[]
 
   @@map("photos")
 }
@@ -53,10 +53,10 @@ model Photo {
 model Location {
   id Int @id @default(autoincrement())
 
-  album   Album @relation(fields: [albumId], references: [id])
+  album   Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
   albumId Int
 
-  photo   Photo @relation(fields: [photoId], references: [id])
+  photo   Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
   photoId Int
 
   @@map("locations")

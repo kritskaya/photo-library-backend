@@ -264,6 +264,7 @@ describe('Photo Controller', () => {
 
       const createAlbumResponse = await request.post(albumRoutes.create).send(createAlbumDto);
       expect(createAlbumResponse.status).toBe(HttpStatus.CREATED);
+      expect(createAlbumResponse.body.coverId).toBe(id);
 
       const deleteResponse = await request.delete(photosRoutes.delete(id));
       expect(deleteResponse.status).toBe(HttpStatus.OK);

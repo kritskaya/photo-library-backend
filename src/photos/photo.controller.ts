@@ -106,7 +106,7 @@ export class PhotoController {
       throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 
-    const updatedPhoto = this.photoService.update(body, photo);
+    const updatedPhoto = await this.photoService.update(body, photo);
 
     return updatedPhoto;
   }
@@ -121,7 +121,7 @@ export class PhotoController {
       throw new NotFoundException(ExceptionMessages.PHOTO_NOT_FOUND);
     }
 
-    const deletedPhoto = this.photoService.delete(id);
+    const deletedPhoto = await this.photoService.delete(id);
     return deletedPhoto;
   }
 }

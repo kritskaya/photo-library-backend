@@ -59,33 +59,11 @@ export class PhotoPrismaRepositoty {
   }
 
   async delete(id: number): Promise<Photo> {
-    const [_covers, _deletedLocations, deletedPhoto] = await this.prisma.$transaction([
-      // update album covers
-      this.prisma.album.updateMany({
-        data: {
-          coverId: null,
-        },
-        where: {
-          coverId: id,
-        },
-      }),
-
-      // delete locations
-      this.prisma.location.deleteMany({
-        where: {
-          photoId: id,
-        },
-      }),
-
-      //delete photo
-      this.prisma.photo.delete({
-        where: {
-          id,
-        },
-      }),
-    ]);
-
-    return deletedPhoto;
+    return this.prisma.photo.delete({
+      where: {
+        id,
+      },
+    });
   }
 
   async count(condition: Prisma.PhotoWhereInput): Promise<number> {

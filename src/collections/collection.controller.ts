@@ -81,7 +81,7 @@ export class CollectionController {
       throw new NotFoundException(ExceptionMessages.COLLECTION_NOT_FOUND);
     }
 
-    const deletedCollection = this.collectionService.delete(id);
+    const deletedCollection = await this.collectionService.delete(id);
     return deletedCollection;
   }
 }

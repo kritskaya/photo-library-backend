@@ -60,44 +60,24 @@ export class AlbumPrismaRepository {
 
   async delete(id: number): Promise<{ deletedAlbum: Album; pathsToDelete: string[] }> {
     const { photosIdsToDelete, pathsToDelete } = await this.getPhotosFromDeletedAlbums([id]);
-    
-    const [_covers, _deletedLocations, _deletedPhoto, deletedAlbum] =
-      await this.prisma.$transaction([
-        // update album covers
-        this.prisma.album.updateMany({
-          data: {
-            coverId: null,
-          },
-          where: {
-            coverId: {
-              in: photosIdsToDelete,
-            },
-          },
-        }),
 
-        // delete locations
-        this.prisma.location.deleteMany({
-          where: {
-            albumId: id,
+    const [_deletedPhoto, deletedAlbum] = await this.prisma.$transaction([
+      //delete photos
+      this.prisma.photo.deleteMany({
+        where: {
+          id: {
+            in: photosIdsToDelete,
           },
-        }),
+        },
+      }),
 
-        //delete photos
-        this.prisma.photo.deleteMany({
-          where: {
-            id: {
-              in: photosIdsToDelete,
-            },
-          },
-        }),
-
-        //delete album
-        this.prisma.album.delete({
-          where: {
-            id,
-          },
-        }),
-      ]);
+      //delete album
+      this.prisma.album.delete({
+        where: {
+          id,
+        },
+      }),
+    ]);
 
     return {
       deletedAlbum: deletedAlbum,
