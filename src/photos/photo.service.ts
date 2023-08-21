@@ -26,8 +26,9 @@ export class PhotoService {
     return this.photoRepository.findById(id);
   }
 
-  async create(createPhotoDto: CreatePhotoDto): Promise<Photo> {
-    return this.photoRepository.create(createPhotoDto);
+  async create(createPhotoDto: CreatePhotoDto, file: Express.Multer.File): Promise<Photo> {
+    const path = file.filename || null;
+    return this.photoRepository.create(createPhotoDto, path);
   }
 
   async update(updatePhotoDto: UpdatePhotoDto, oldPhoto: Photo): Promise<Photo> {
@@ -50,10 +51,5 @@ export class PhotoService {
 
   async count(condition: Prisma.PhotoWhereInput): Promise<number> {
     return this.photoRepository.count(condition);
-  }
-
-  async upload(newPhoto: Photo, file: Express.Multer.File) {
-    const updatedPhoto = await this.photoRepository.update({ path: file.filename }, newPhoto);
-    return updatedPhoto;
   }
 }

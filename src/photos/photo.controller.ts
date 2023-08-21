@@ -33,7 +33,6 @@ import { imageFileFilter } from './multer/imagePhotoFilter';
 import { storage } from './multer/multerStorage';
 import { PhotoEntity } from './entity/photo.entity';
 import { ExceptionMessages } from '../common/messages';
-import { PathValidationPipe } from '../common/validation/pipes/PathValidationPipe';
 import { NotEmptyPayloadPipe } from '../common/validation/pipes/NotEmptyPayloadPipe';
 import { DeleteFileOnErrorFilter } from '../common/filters/DeleteFileOnErrorFilter';
 
@@ -87,9 +86,8 @@ export class PhotoController {
     @UploadedFile(new ParseFilePipe({ fileIsRequired: true }))
     file: Express.Multer.File,
   ) {
-    const newPhoto = await this.photoService.create(body);
-    const updatedPhoto = await this.photoService.upload(newPhoto, file);
-    return updatedPhoto;
+    const newPhoto = await this.photoService.create(body, file);
+    return newPhoto;
   }
 
   @ApiOkResponse({ type: PhotoEntity })
@@ -99,7 +97,7 @@ export class PhotoController {
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body(PathValidationPipe, NotEmptyPayloadPipe) body: UpdatePhotoDto,
+    @Body(NotEmptyPayloadPipe) body: UpdatePhotoDto,
   ) {
     const photo = await this.photoService.findById(id);
     if (!photo) {

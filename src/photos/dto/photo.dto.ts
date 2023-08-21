@@ -33,11 +33,6 @@ export class CreatePhotoDto {
 }
 
 export class UpdatePhotoDto {
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  path?: string;
-
   @ApiPropertyOptional({ example: '2023-06-26T13:08:16.833Z' })
   @IsOptional()
   @IsDateString()

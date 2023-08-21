@@ -32,10 +32,12 @@ export class PhotoPrismaRepositoty {
     });
   }
 
-  async create(createPhotoDto: CreatePhotoDto): Promise<Photo> {
+  async create(createPhotoDto: CreatePhotoDto, path: string): Promise<Photo> {
+   
     return this.prisma.photo.create({
       data: {
         ...createPhotoDto,
+        path: path,
         receivedAt: new Date(createPhotoDto.receivedAt),
       },
     });
